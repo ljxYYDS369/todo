@@ -19,12 +19,12 @@
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
 
-            /* 霓虹色系 */
-            --neon-cyan: #00F0FF;
-            --neon-cyan-soft: rgba(0, 240, 255, 0.15);
+            /* 霓虹色系 - 绿色主题 */
+            --neon-cyan: #39FF14;            /* 主色：霓虹绿 */
+            --neon-cyan-soft: rgba(57, 255, 20, 0.15);
             --neon-magenta: #FF2E97;
             --neon-purple: #B026FF;
-            --neon-green: #39FF14;
+            --neon-green: #39FF14;           /* 复选框选中态，统一绿色 */
             --neon-red: #FF3B5C;
             --neon-amber: #FFB800;
 
@@ -40,7 +40,7 @@
 
             /* 文字 */
             --text-bright: #FFFFFF;
-            --text-cyan: #00F0FF;
+            --text-cyan: #39FF14;            /* 跟随主色 */
             --text-dim: #8A95B0;
             --text-dark: #0F1424;
             --text-dark-muted: #5A6280;
@@ -56,12 +56,12 @@
             --r-lg: 12px;
             --r-full: 9999px;
 
-            /* 霓虹发光 */
-            --glow-cyan: 0 0 8px rgba(0, 240, 255, 0.6), 0 0 16px rgba(0, 240, 255, 0.3);
-            --glow-cyan-strong: 0 0 12px rgba(0, 240, 255, 0.8), 0 0 24px rgba(0, 240, 255, 0.4), 0 0 48px rgba(0, 240, 255, 0.2);
+            /* 霓虹发光 - 绿色 */
+            --glow-cyan: 0 0 8px rgba(57, 255, 20, 0.6), 0 0 16px rgba(57, 255, 20, 0.3);
+            --glow-cyan-strong: 0 0 12px rgba(57, 255, 20, 0.8), 0 0 24px rgba(57, 255, 20, 0.4), 0 0 48px rgba(57, 255, 20, 0.2);
             --glow-red: 0 0 8px rgba(255, 59, 92, 0.6), 0 0 16px rgba(255, 59, 92, 0.3);
             --glow-green: 0 0 8px rgba(57, 255, 20, 0.6), 0 0 16px rgba(57, 255, 20, 0.3);
-            --border-glow: 0 0 0 1px rgba(0, 240, 255, 0.4), 0 0 12px rgba(0, 240, 255, 0.25);
+            --border-glow: 0 0 0 1px rgba(57, 255, 20, 0.4), 0 0 12px rgba(57, 255, 20, 0.25);
         }
 
         * {
@@ -90,8 +90,8 @@
             z-index: 9000;
             background: repeating-linear-gradient(
                 0deg,
-                rgba(0, 240, 255, 0.03) 0px,
-                rgba(0, 240, 255, 0.03) 1px,
+                rgba(57, 255, 20, 0.03) 0px,
+                rgba(57, 255, 20, 0.03) 1px,
                 transparent 1px,
                 transparent 3px
             );
@@ -107,7 +107,7 @@
             background: linear-gradient(
                 to bottom,
                 transparent 0%,
-                rgba(0, 240, 255, 0.04) 50%,
+                rgba(57, 255, 20, 0.04) 50%,
                 transparent 100%
             );
             pointer-events: none;
@@ -246,8 +246,8 @@
             padding-bottom: 90px;
             background: var(--light-bg);
             background-image:
-                linear-gradient(rgba(0, 240, 255, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+                linear-gradient(rgba(57, 255, 20, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(57, 255, 20, 0.04) 1px, transparent 1px);
             background-size: 32px 32px;
             padding-top: var(--safe-top);
         }
@@ -264,7 +264,7 @@
             background: var(--dark-1);
             padding: 6px 14px;
             border-radius: var(--r-full);
-            border: 1px solid rgba(0, 240, 255, 0.3);
+            border: 1px solid rgba(57, 255, 20, 0.3);
             box-shadow: var(--glow-cyan);
         }
 
@@ -290,11 +290,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+            border-bottom: 1px solid rgba(57, 255, 20, 0.2);
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 4px 20px rgba(0, 240, 255, 0.08);
+            box-shadow: 0 4px 20px rgba(57, 255, 20, 0.08);
         }
 
         .header::after {
@@ -313,7 +313,7 @@
             color: var(--text-bright);
             letter-spacing: 0.15em;
             text-transform: uppercase;
-            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+            text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
         }
 
         .header-actions {
@@ -330,7 +330,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            border: 1px solid rgba(0, 240, 255, 0.3);
+            border: 1px solid rgba(57, 255, 20, 0.3);
             color: var(--neon-cyan);
             font-size: 16px;
             transition: all 0.15s;
@@ -351,8 +351,8 @@
             font-weight: 600;
             letter-spacing: 0.15em;
             text-transform: uppercase;
-            border-bottom: 1px solid rgba(0, 240, 255, 0.15);
-            text-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+            border-bottom: 1px solid rgba(57, 255, 20, 0.15);
+            text-shadow: 0 0 6px rgba(57, 255, 20, 0.3);
         }
 
         /* ===== 待办列表 ===== */
@@ -367,7 +367,7 @@
             padding: 14px 16px;
             background: var(--light-card);
             border-radius: var(--r-lg);
-            border: 1px solid rgba(0, 240, 255, 0.15);
+            border: 1px solid rgba(57, 255, 20, 0.15);
             margin-bottom: 8px;
             cursor: pointer;
             transition: all 0.2s;
@@ -388,7 +388,7 @@
         .todo-item:active {
             background: var(--light-card);
             transform: scale(0.98);
-            border-color: rgba(0, 240, 255, 0.4);
+            border-color: rgba(57, 255, 20, 0.4);
         }
 
         .todo-item.completed {
@@ -536,7 +536,7 @@
         }
         @keyframes fab-pulse {
             0%, 100% { box-shadow: var(--glow-cyan-strong); }
-            50% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.9), 0 0 40px rgba(0, 240, 255, 0.5), 0 0 80px rgba(0, 240, 255, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(57, 255, 20, 0.9), 0 0 40px rgba(57, 255, 20, 0.5), 0 0 80px rgba(57, 255, 20, 0.3); }
         }
 
         .add-btn:active {
@@ -564,7 +564,7 @@
         /* ===== 弹窗 ===== */
         .modal {
             background: var(--dark-2);
-            border: 1px solid rgba(0, 240, 255, 0.3);
+            border: 1px solid rgba(57, 255, 20, 0.3);
             border-radius: var(--r-lg);
             width: 100%;
             max-width: 360px;
@@ -583,7 +583,7 @@
             color: var(--text-bright);
             letter-spacing: 0.15em;
             text-transform: uppercase;
-            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+            text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
         }
 
         .form-group {
@@ -598,7 +598,7 @@
             display: block;
             letter-spacing: 0.15em;
             text-transform: uppercase;
-            text-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+            text-shadow: 0 0 6px rgba(57, 255, 20, 0.3);
         }
 
         .form-label .required {
@@ -608,7 +608,7 @@
         .form-input {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid rgba(0, 240, 255, 0.2);
+            border: 1px solid rgba(57, 255, 20, 0.2);
             border-radius: var(--r-md);
             background: var(--dark-1);
             font-family: var(--font-mono);
@@ -699,7 +699,7 @@
         .btn-confirm {
             background: var(--neon-cyan);
             color: var(--dark-0);
-            box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+            box-shadow: 0 0 12px rgba(57, 255, 20, 0.4);
         }
 
         .btn-delete {
@@ -720,7 +720,7 @@
             height: 56px;
             margin: 0 auto 16px;
             color: var(--neon-cyan);
-            filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.4));
+            filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.4));
         }
 
         .empty-state .tip-title {
@@ -754,7 +754,7 @@
             color: var(--text-bright);
             letter-spacing: 0.15em;
             text-transform: uppercase;
-            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+            text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
         }
 
         .close-btn {
@@ -762,7 +762,7 @@
             height: 30px;
             border-radius: 50%;
             background: transparent;
-            border: 1px solid rgba(0, 240, 255, 0.3);
+            border: 1px solid rgba(57, 255, 20, 0.3);
             color: var(--neon-cyan);
             font-size: 16px;
             cursor: pointer;
@@ -806,7 +806,7 @@
     <!-- ===== 启动屏 ===== -->
     <div id="bootScreen">
         <div class="boot-logo">
-            TASK<span style="color: var(--neon-magenta)">//</span>NET
+            TASK<span style="color: var(--neon-green)">//</span>NET
             <span class="sub">DEADLINE PROTOCOL v3.1.0</span>
         </div>
         <div class="boot-log" id="bootLog"></div>
@@ -1024,7 +1024,7 @@
                     p.x += p.vx; p.y += p.vy;
                     if (p.x < 0 || p.x > window.innerWidth) p.vx *= -1;
                     if (p.y < 0 || p.y > window.innerHeight) p.vy *= -1;
-                    ctx.fillStyle = 'rgba(0, 240, 255, ' + p.a + ')';
+                    ctx.fillStyle = 'rgba(57, 255, 20, ' + p.a + ')';
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
                     ctx.fill();
@@ -1034,7 +1034,7 @@
                         var dist = Math.sqrt(dx * dx + dy * dy);
                         if (dist < 100) {
                             var alpha = (1 - dist / 100) * 0.15;
-                            ctx.strokeStyle = 'rgba(0, 240, 255, ' + alpha + ')';
+                            ctx.strokeStyle = 'rgba(57, 255, 20, ' + alpha + ')';
                             ctx.lineWidth = 0.5;
                             ctx.beginPath();
                             ctx.moveTo(p.x, p.y);
