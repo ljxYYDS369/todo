@@ -630,9 +630,11 @@
         }
 
         textarea.form-input {
-            min-height: 100px;
-            resize: vertical;
+            min-height: 44px;
+            resize: none;
+            overflow: hidden;
             font-family: var(--font-body);
+            line-height: 1.5;
         }
 
         .date-inputs {
@@ -1109,6 +1111,21 @@
             renderTodos();
             renderTodos2();
             showPage(1);
+            bindAutoGrow();
+        }
+
+        // 正文 textarea 根据内容自动加高
+        function autoGrowTextarea(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.max(44, el.scrollHeight) + 'px';
+        }
+
+        function bindAutoGrow() {
+            var tas = document.querySelectorAll('textarea.form-input');
+            tas.forEach(function(ta) {
+                ta.addEventListener('input', function() { autoGrowTextarea(ta); });
+                autoGrowTextarea(ta);
+            });
         }
 
         function renderTodos() {
@@ -1257,7 +1274,9 @@
             }
 
             document.getElementById('todoLocation').value = todo.location || '';
-            document.getElementById('todoContent').value = todo.content || '';
+            const contentEl = document.getElementById('todoContent');
+            contentEl.value = todo.content || '';
+            autoGrowTextarea(contentEl);
 
             document.getElementById('todoModal').classList.add('active');
         }
@@ -1446,7 +1465,9 @@
             document.getElementById('modalTitle2').textContent = '编辑待办';
             document.getElementById('todoId2').value = todo.id;
             document.getElementById('todoTitle2').value = todo.title;
-            document.getElementById('todoContent2').value = todo.content || '';
+            const contentEl2 = document.getElementById('todoContent2');
+            contentEl2.value = todo.content || '';
+            autoGrowTextarea(contentEl2);
 
             document.getElementById('todoModal2').classList.add('active');
         }
@@ -1580,7 +1601,9 @@
             document.getElementById('modalTitle3').textContent = '编辑随手记';
             document.getElementById('todoId3').value = note.id;
             document.getElementById('todoTitle3').value = note.title;
-            document.getElementById('todoContent3').value = note.content || '';
+            const contentEl3 = document.getElementById('todoContent3');
+            contentEl3.value = note.content || '';
+            autoGrowTextarea(contentEl3);
 
             document.getElementById('todoModal3').classList.add('active');
         }
