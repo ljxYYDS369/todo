@@ -215,7 +215,7 @@
             100% { width: 100%; }
         }
 
-        /* ===== 双页面滑动容器 ===== */
+        /* ===== 三页面滑动容器 ===== */
         .app-viewport {
             width: 100vw;
             height: 100vh;
@@ -226,18 +226,19 @@
 
         .app-wrapper {
             display: flex;
-            width: 200%;
+            width: 300%;
             height: 100%;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             will-change: transform;
         }
 
-        .app-wrapper.show-second {
-            transform: translateX(-50%);
-        }
+        /* 三页：随手记(0) → 待办(1) → ddl(2) */
+        .app-wrapper.show-page-0 { transform: translateX(0); }
+        .app-wrapper.show-page-1 { transform: translateX(-33.3333%); }
+        .app-wrapper.show-page-2 { transform: translateX(-66.6667%); }
 
         .page {
-            width: 50%;
+            width: 33.3333%;
             height: 100vh;
             overflow-y: auto;
             overflow-x: hidden;
@@ -820,15 +821,28 @@
 
     <!-- ===== 页面指示器 ===== -->
     <div class="page-indicator" id="pageIndicator">
+        <span class="page-dot"></span>
         <span class="page-dot active"></span>
         <span class="page-dot"></span>
     </div>
 
-    <!-- ===== 双页面滑动容器 ===== -->
+    <!-- ===== 三页面滑动容器：随手记(0) → 待办(1) → ddl(2) ===== -->
     <div class="app-viewport" id="appViewport">
         <div class="app-wrapper" id="appWrapper">
 
-            <!-- ======== 页面 1：待办（无日期时间地点） ======== -->
+            <!-- ======== 页面 0：随手记（标题+正文） ======== -->
+            <div class="page" id="page0">
+                <div class="header">
+                    <h1>随手记</h1>
+                    <div class="header-actions">
+                        <button class="header-btn" onclick="clearCompletedNotes()" title="清除已完成">○</button>
+                    </div>
+                </div>
+
+                <div id="notesContainer"></div>
+            </div>
+
+            <!-- ======== 页面 1：待办（标题+正文） ======== -->
             <div class="page" id="page1">
                 <div class="header">
                     <h1>待办</h1>
@@ -840,7 +854,7 @@
                 <div id="todoContainer2"></div>
             </div>
 
-            <!-- ======== 页面 2：带日期时间的待办 ======== -->
+            <!-- ======== 页面 2：ddl（带日期时间地点） ======== -->
             <div class="page" id="page2">
                 <div class="header">
                     <h1>ddl</h1>
@@ -934,6 +948,31 @@
         </div>
     </div>
 
+    <!-- ===== 弹窗 3：随手记 新建/编辑（标题+正文，同待办） ===== -->
+    <div class="modal-overlay" id="todoModal3">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle3">新建随手记</h2>
+                <button class="close-btn" onclick="closeModal3()">×</button>
+            </div>
+            <form id="todoForm3" onsubmit="return false;">
+                <input type="hidden" id="todoId3">
+                <div class="form-group">
+                    <label class="form-label">标题 <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="todoTitle3" placeholder="请输入标题">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">正文</label>
+                    <textarea class="form-input" id="todoContent3" placeholder="请输入详细内容"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal3()">取消</button>
+                    <button type="button" class="btn btn-confirm" onclick="saveNote()">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- ===== 删除确认弹窗（共用） ===== -->
     <div class="modal-overlay confirm-modal" id="confirmModal">
         <div class="modal">
@@ -960,11 +999,12 @@
             var log = document.getElementById('bootLog');
             var todosCount = (JSON.parse(localStorage.getItem('todos') || '[]')).length;
             var todos2Count = (JSON.parse(localStorage.getItem('todos2') || '[]')).length;
+            var notesCount = (JSON.parse(localStorage.getItem('notes') || '[]')).length;
             var lines = [
                 { t: '> 初始化任务核心', s: 'ok', d: 200 },
                 { t: '> 加载时间同步协议', s: 'ok', d: 280 },
                 { t: '> 校验本地数据完整性', s: 'ok', d: 250 },
-                { t: '> 待办: ' + todos2Count + ' 条 / ddl: ' + todosCount + ' 条', s: '', d: 300 },
+                { t: '> 随手记: ' + notesCount + ' / 待办: ' + todos2Count + ' / ddl: ' + todosCount, s: '', d: 300 },
                 { t: '> 建立量子隧道连接...', s: '', d: 350 },
                 { t: '> 警告: 离线模式', s: 'warn', d: 200 },
                 { t: '> 系统就绪', s: 'ok', d: 200 }
@@ -1065,10 +1105,10 @@
         let deleteId = null;
 
         function init() {
-            showPage(0);
+            renderNotes();
             renderTodos();
             renderTodos2();
-            updatePageIndicator();
+            showPage(1);
         }
 
         function renderTodos() {
@@ -1465,6 +1505,140 @@
         }
 
         // ============================================================
+        // 页面 0：随手记（标题+正文，布局同待办）
+        // ============================================================
+        let notes = JSON.parse(localStorage.getItem('notes') || '[]');
+        let deleteNoteId = null;
+
+        function renderNotes() {
+            const container = document.getElementById('notesContainer');
+            const pending = notes.filter(n => !n.completed);
+            const completed = notes.filter(n => n.completed);
+
+            let html = '';
+
+            if (pending.length > 0) {
+                html += '<div class="section-header">未完成</div>';
+                html += '<div class="todo-list">';
+                pending.forEach(note => { html += renderNoteItem(note); });
+                html += '</div>';
+            }
+
+            if (completed.length > 0) {
+                html += '<div class="section-header">已完成</div>';
+                html += '<div class="todo-list">';
+                completed.forEach(note => { html += renderNoteItem(note); });
+                html += '</div>';
+            }
+
+            if (notes.length === 0) {
+                html = '<div class="empty-state">' +
+                       '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+                       '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>' +
+                       '</svg>' +
+                       '<div class="tip-title">NO NOTE</div><p>暂无随手记<br>点击 + 添加新随手记</p></div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderNoteItem(note) {
+            const completedClass = note.completed ? 'completed' : '';
+
+            return `
+                <div class="todo-item ${completedClass}" onclick="openEditNote('${note.id}')">
+                    <div class="checkbox ${note.completed ? 'checked' : ''}" onclick="event.stopPropagation(); toggleCompleteNote('${note.id}')"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">${escapeHtml(note.title)}</div>
+                        ${note.content ? `<div class="todo-meta">${escapeHtml(note.content)}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleCompleteNote(id) {
+            const note = notes.find(n => n.id === id);
+            if (note) {
+                note.completed = !note.completed;
+                note.completedAt = note.completed ? new Date().toISOString() : null;
+                saveNotes();
+                renderNotes();
+            }
+        }
+
+        function openAddNote() {
+            document.getElementById('modalTitle3').textContent = '新建随手记';
+            document.getElementById('todoId3').value = '';
+            document.getElementById('todoForm3').reset();
+            document.getElementById('todoModal3').classList.add('active');
+        }
+
+        function openEditNote(id) {
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+
+            document.getElementById('modalTitle3').textContent = '编辑随手记';
+            document.getElementById('todoId3').value = note.id;
+            document.getElementById('todoTitle3').value = note.title;
+            document.getElementById('todoContent3').value = note.content || '';
+
+            document.getElementById('todoModal3').classList.add('active');
+        }
+
+        function closeModal3() {
+            document.getElementById('todoModal3').classList.remove('active');
+        }
+
+        function saveNote() {
+            const id = document.getElementById('todoId3').value;
+            const title = document.getElementById('todoTitle3').value.trim();
+            const content = document.getElementById('todoContent3').value.trim();
+
+            if (!title) {
+                alert('请填写标题');
+                return;
+            }
+
+            if (id) {
+                const note = notes.find(n => n.id === id);
+                if (note) {
+                    note.title = title;
+                    note.content = content;
+                }
+            } else {
+                notes.push({
+                    id: Date.now().toString(),
+                    title,
+                    content,
+                    completed: false,
+                    completedAt: null,
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            saveNotes();
+            closeModal3();
+            renderNotes();
+        }
+
+        function clearCompletedNotes() {
+            const completedCount = notes.filter(n => n.completed).length;
+            if (completedCount === 0) {
+                alert('没有已完成的随手记');
+                return;
+            }
+            if (confirm(`确定要清除 ${completedCount} 个已完成随手记吗？`)) {
+                notes = notes.filter(n => !n.completed);
+                saveNotes();
+                renderNotes();
+            }
+        }
+
+        function saveNotes() {
+            localStorage.setItem('notes', JSON.stringify(notes));
+        }
+
+        // ============================================================
         // 页面切换 & 滑动检测
         // ============================================================
         let currentPage = 0;
@@ -1474,11 +1648,8 @@
         function showPage(index) {
             currentPage = index;
             const wrapper = document.getElementById('appWrapper');
-            if (index === 0) {
-                wrapper.classList.remove('show-second');
-            } else {
-                wrapper.classList.add('show-second');
-            }
+            wrapper.classList.remove('show-page-0', 'show-page-1', 'show-page-2');
+            wrapper.classList.add('show-page-' + index);
             updatePageIndicator();
         }
 
@@ -1491,6 +1662,8 @@
 
         function openAddForCurrentPage() {
             if (currentPage === 0) {
+                openAddNote();
+            } else if (currentPage === 1) {
                 openAddModal2();
             } else {
                 openAddModal();
@@ -1512,10 +1685,10 @@
             const absDy = Math.abs(dy);
 
             if (absDx > absDy && absDx > 40) {
-                if (dx < 0 && currentPage === 0) {
-                    showPage(1);
-                } else if (dx > 0 && currentPage === 1) {
-                    showPage(0);
+                if (dx < 0 && currentPage < 2) {
+                    showPage(currentPage + 1);
+                } else if (dx > 0 && currentPage > 0) {
+                    showPage(currentPage - 1);
                 }
             }
 
