@@ -1276,9 +1276,9 @@
             document.getElementById('todoLocation').value = todo.location || '';
             const contentEl = document.getElementById('todoContent');
             contentEl.value = todo.content || '';
-            autoGrowTextarea(contentEl);
 
             document.getElementById('todoModal').classList.add('active');
+            requestAnimationFrame(function() { autoGrowTextarea(contentEl); });
         }
 
         function closeModal() {
@@ -1467,9 +1467,9 @@
             document.getElementById('todoTitle2').value = todo.title;
             const contentEl2 = document.getElementById('todoContent2');
             contentEl2.value = todo.content || '';
-            autoGrowTextarea(contentEl2);
 
             document.getElementById('todoModal2').classList.add('active');
+            requestAnimationFrame(function() { autoGrowTextarea(contentEl2); });
         }
 
         function closeModal2() {
@@ -1603,9 +1603,9 @@
             document.getElementById('todoTitle3').value = note.title;
             const contentEl3 = document.getElementById('todoContent3');
             contentEl3.value = note.content || '';
-            autoGrowTextarea(contentEl3);
 
             document.getElementById('todoModal3').classList.add('active');
+            requestAnimationFrame(function() { autoGrowTextarea(contentEl3); });
         }
 
         function closeModal3() {
