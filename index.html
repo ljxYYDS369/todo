@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0A0E1A">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>ddl</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ============ Tech HUD Design Tokens ============ */
+        :root {
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+            /* 霓虹色系 */
+            --neon-cyan: #00F0FF;
+            --neon-cyan-soft: rgba(0, 240, 255, 0.15);
+            --neon-magenta: #FF2E97;
+            --neon-purple: #B026FF;
+            --neon-green: #39FF14;
+            --neon-red: #FF3B5C;
+            --neon-amber: #FFB800;
+
+            /* 深色背景层级 */
+            --dark-0: #050810;
+            --dark-1: #0A0E1A;
+            --dark-2: #0F1424;
+            --dark-3: #1A1F35;
+
+            /* 浅色列表区 */
+            --light-bg: #EAEEF5;
+            --light-card: #FFFFFF;
+
+            /* 文字 */
+            --text-bright: #FFFFFF;
+            --text-cyan: #00F0FF;
+            --text-dim: #8A95B0;
+            --text-dark: #0F1424;
+            --text-dark-muted: #5A6280;
+
+            /* 字体 */
+            --font-display: "Orbitron", "JetBrains Mono", monospace;
+            --font-body: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            --font-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
+
+            /* 圆角 */
+            --r-sm: 4px;
+            --r-md: 8px;
+            --r-lg: 12px;
+            --r-full: 9999px;
+
+            /* 霓虹发光 */
+            --glow-cyan: 0 0 8px rgba(0, 240, 255, 0.6), 0 0 16px rgba(0, 240, 255, 0.3);
+            --glow-cyan-strong: 0 0 12px rgba(0, 240, 255, 0.8), 0 0 24px rgba(0, 240, 255, 0.4), 0 0 48px rgba(0, 240, 255, 0.2);
+            --glow-red: 0 0 8px rgba(255, 59, 92, 0.6), 0 0 16px rgba(255, 59, 92, 0.3);
+            --glow-green: 0 0 8px rgba(57, 255, 20, 0.6), 0 0 16px rgba(57, 255, 20, 0.3);
+            --border-glow: 0 0 0 1px rgba(0, 240, 255, 0.4), 0 0 12px rgba(0, 240, 255, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--dark-1);
+            color: var(--text-bright);
+            min-height: 100vh;
+            overflow: hidden;
+            height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== 全局效果层 ===== */
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9000;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 240, 255, 0.03) 0px,
+                rgba(0, 240, 255, 0.03) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            mix-blend-mode: screen;
+            opacity: 0.6;
+        }
+
+        .scan-beam {
+            position: fixed;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(
+                to bottom,
+                transparent 0%,
+                rgba(0, 240, 255, 0.04) 50%,
+                transparent 100%
+            );
+            pointer-events: none;
+            z-index: 9001;
+            animation: scan-beam-move 6s linear infinite;
+        }
+        @keyframes scan-beam-move {
+            0% { top: -80px; }
+            100% { top: 100vh; }
+        }
+
+        #particleCanvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.7;
+        }
+
+        /* ===== 启动屏 ===== */
+        #bootScreen {
+            position: fixed;
+            inset: 0;
+            background: var(--dark-0);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            font-family: var(--font-mono);
+            color: var(--neon-cyan);
+            transition: opacity 0.6s, visibility 0.6s;
+        }
+        #bootScreen.hide {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .boot-logo {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            margin-bottom: 32px;
+            text-shadow: var(--glow-cyan);
+            text-align: center;
+            line-height: 1.4;
+        }
+        .boot-logo .sub {
+            display: block;
+            font-size: 10px;
+            letter-spacing: 0.4em;
+            color: var(--text-dim);
+            margin-top: 8px;
+            text-shadow: none;
+        }
+        .boot-log {
+            font-size: 11px;
+            line-height: 1.8;
+            color: var(--text-dim);
+            text-align: left;
+            width: 100%;
+            max-width: 280px;
+            min-height: 120px;
+            letter-spacing: 0.05em;
+        }
+        .boot-log .ok { color: var(--neon-green); }
+        .boot-log .warn { color: var(--neon-amber); }
+        .boot-log .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 12px;
+            background: var(--neon-cyan);
+            vertical-align: middle;
+            animation: cursor-blink 0.8s steps(2) infinite;
+        }
+        @keyframes cursor-blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        .boot-progress {
+            width: 100%;
+            max-width: 280px;
+            height: 4px;
+            background: var(--dark-3);
+            border-radius: 2px;
+            margin-top: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+        .boot-progress::after {
+            content: '';
+            position: absolute;
+            left: 0; top: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+            box-shadow: var(--glow-cyan);
+            animation: boot-fill 2.2s ease-out forwards;
+        }
+        @keyframes boot-fill {
+            0% { width: 0%; }
+            60% { width: 80%; }
+            100% { width: 100%; }
+        }
+
+        /* ===== 双页面滑动容器 ===== */
+        .app-viewport {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-wrapper {
+            display: flex;
+            width: 200%;
+            height: 100%;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        .app-wrapper.show-second {
+            transform: translateX(-50%);
+        }
+
+        .page {
+            width: 50%;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+            padding-bottom: 90px;
+            background: var(--light-bg);
+            background-image:
+                linear-gradient(rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+            background-size: 32px 32px;
+            padding-top: var(--safe-top);
+        }
+
+        /* ===== 页面指示器 ===== */
+        .page-indicator {
+            position: fixed;
+            top: calc(var(--safe-top) + 14px);
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 101;
+            background: var(--dark-1);
+            padding: 6px 14px;
+            border-radius: var(--r-full);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .page-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            transition: all 0.3s;
+        }
+
+        .page-dot.active {
+            background: var(--neon-cyan);
+            width: 18px;
+            border-radius: 4px;
+            box-shadow: 0 0 6px var(--neon-cyan);
+        }
+
+        /* ===== 顶部导航栏 ===== */
+        .header {
+            background: var(--dark-1);
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 240, 255, 0.08);
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; bottom: -1px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--neon-cyan) 50%, transparent 100%);
+            opacity: 0.6;
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            color: var(--neon-cyan);
+            font-size: 16px;
+            transition: all 0.15s;
+        }
+
+        .header-btn:active {
+            background: var(--neon-cyan-soft);
+            box-shadow: var(--glow-cyan);
+        }
+
+        /* ===== 分类标签 ===== */
+        .section-header {
+            background: var(--dark-1);
+            padding: 10px 16px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--neon-cyan);
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+            text-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+        }
+
+        /* ===== 待办列表 ===== */
+        .todo-list {
+            background: transparent;
+            padding: 8px 12px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background: var(--light-card);
+            border-radius: var(--r-lg);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .todo-item::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 10px; bottom: 10px;
+            width: 3px;
+            background: var(--neon-cyan);
+            border-radius: 0 2px 2px 0;
+            opacity: 0.5;
+        }
+
+        .todo-item:active {
+            background: var(--light-card);
+            transform: scale(0.98);
+            border-color: rgba(0, 240, 255, 0.4);
+        }
+
+        .todo-item.completed {
+            opacity: 0.55;
+        }
+
+        .todo-item.completed::before {
+            background: var(--neon-green);
+            opacity: 0.7;
+        }
+
+        .todo-item.completed .todo-title {
+            text-decoration: line-through;
+            color: var(--text-dark-muted);
+        }
+
+        /* ===== 复选框 ===== */
+        .checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--text-dark-muted);
+            margin-right: 12px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checkbox.checked {
+            background: var(--neon-green);
+            border-color: var(--neon-green);
+            box-shadow: var(--glow-green);
+        }
+
+        .checkbox.checked::after {
+            content: "✓";
+            color: var(--dark-0);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        /* ===== 倒计时天数 ===== */
+        .days-badge {
+            padding: 3px 10px;
+            border-radius: var(--r-sm);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 10px;
+            flex-shrink: 0;
+            letter-spacing: 0.05em;
+        }
+
+        .days-badge.urgent {
+            background: rgba(255, 59, 92, 0.15);
+            color: var(--neon-red);
+            border: 1px solid rgba(255, 59, 92, 0.4);
+        }
+
+        .days-badge.warning {
+            background: rgba(255, 184, 0, 0.15);
+            color: var(--neon-amber);
+            border: 1px solid rgba(255, 184, 0, 0.4);
+        }
+
+        .days-badge.normal {
+            background: rgba(57, 255, 20, 0.12);
+            color: #1ea50c;
+            border: 1px solid rgba(57, 255, 20, 0.35);
+        }
+
+        .days-badge.overdue {
+            background: var(--neon-red);
+            color: #fff;
+            border: 1px solid var(--neon-red);
+            box-shadow: 0 0 8px rgba(255, 59, 92, 0.5);
+        }
+
+        .days-badge.done {
+            background: rgba(57, 255, 20, 0.12);
+            color: #1ea50c;
+            border: 1px solid rgba(57, 255, 20, 0.35);
+        }
+
+        /* ===== 待办内容 ===== */
+        .todo-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .todo-title {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 0.02em;
+        }
+
+        .todo-meta {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dark-muted);
+            margin-top: 4px;
+            letter-spacing: 0.03em;
+        }
+
+        /* ===== 日期 ===== */
+        .todo-date {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-dark-muted);
+            flex-shrink: 0;
+            margin-left: 10px;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== 添加按钮 ===== */
+        .add-btn {
+            position: fixed;
+            bottom: calc(var(--safe-bottom) + 24px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--dark-1);
+            color: var(--neon-cyan);
+            font-size: 28px;
+            font-weight: 300;
+            border: 2px solid var(--neon-cyan);
+            box-shadow: var(--glow-cyan-strong);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99;
+            transition: transform 0.15s, box-shadow 0.15s;
+            line-height: 1;
+            animation: fab-pulse 2.5s ease-in-out infinite;
+        }
+        @keyframes fab-pulse {
+            0%, 100% { box-shadow: var(--glow-cyan-strong); }
+            50% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.9), 0 0 40px rgba(0, 240, 255, 0.5), 0 0 80px rgba(0, 240, 255, 0.3); }
+        }
+
+        .add-btn:active {
+            transform: translateX(-50%) scale(0.92);
+        }
+
+        /* ===== 弹窗遮罩 ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 8, 16, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        /* ===== 弹窗 ===== */
+        .modal {
+            background: var(--dark-2);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: var(--r-lg);
+            width: 100%;
+            max-width: 360px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 24px 20px;
+            box-shadow: var(--glow-cyan-strong);
+        }
+
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-bright);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--neon-cyan);
+            margin-bottom: 6px;
+            display: block;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+        }
+
+        .form-label .required {
+            color: var(--neon-red);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: var(--r-md);
+            background: var(--dark-1);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-bright);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: var(--border-glow);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-dim);
+            font-family: var(--font-mono);
+        }
+
+        textarea.form-input {
+            min-height: 100px;
+            resize: vertical;
+            font-family: var(--font-body);
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .date-inputs .form-input {
+            flex: 1;
+            text-align: center;
+        }
+
+        .date-inputs span {
+            color: var(--neon-cyan);
+            font-family: var(--font-mono);
+        }
+
+        .time-inputs {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .time-inputs .form-input {
+            flex: 1;
+            text-align: center;
+        }
+
+        .time-inputs span {
+            color: var(--neon-cyan);
+            font-family: var(--font-mono);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: var(--r-md);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid rgba(138, 149, 176, 0.3);
+        }
+
+        .btn-confirm {
+            background: var(--neon-cyan);
+            color: var(--dark-0);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+        }
+
+        .btn-delete {
+            background: rgba(255, 59, 92, 0.15);
+            color: var(--neon-red);
+            border: 1px solid rgba(255, 59, 92, 0.4);
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-dim);
+        }
+
+        .empty-state .icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 16px;
+            color: var(--neon-cyan);
+            filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.4));
+        }
+
+        .empty-state .tip-title {
+            font-family: var(--font-display);
+            font-size: 14px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-dark-muted);
+            line-height: 1.8;
+        }
+
+        /* ===== 弹窗标题 ===== */
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        }
+
+        .close-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            color: var(--neon-cyan);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .close-btn:active {
+            background: var(--neon-cyan-soft);
+        }
+
+        /* ===== 删除确认弹窗 ===== */
+        .confirm-modal .modal {
+            max-width: 300px;
+            text-align: center;
+            border-color: rgba(255, 59, 92, 0.4);
+            box-shadow: 0 0 24px rgba(255, 59, 92, 0.3);
+        }
+
+        .confirm-modal .modal p {
+            margin-bottom: 20px;
+            color: var(--text-dim);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== 减少动画偏好 ===== */
+        @media (prefers-reduced-motion: reduce) {
+            .scan-beam, .boot-progress::after, .add-btn, #bootScreen {
+                animation: none !important;
+            }
+            #bootScreen { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 启动屏 ===== -->
+    <div id="bootScreen">
+        <div class="boot-logo">
+            TASK<span style="color: var(--neon-magenta)">//</span>NET
+            <span class="sub">DEADLINE PROTOCOL v3.1.0</span>
+        </div>
+        <div class="boot-log" id="bootLog"></div>
+        <div class="boot-progress"></div>
+    </div>
+
+    <!-- ===== 全局效果层 ===== -->
+    <canvas id="particleCanvas"></canvas>
+    <div class="scanlines"></div>
+    <div class="scan-beam"></div>
+
+    <!-- ===== 页面指示器 ===== -->
+    <div class="page-indicator" id="pageIndicator">
+        <span class="page-dot active"></span>
+        <span class="page-dot"></span>
+    </div>
+
+    <!-- ===== 双页面滑动容器 ===== -->
+    <div class="app-viewport" id="appViewport">
+        <div class="app-wrapper" id="appWrapper">
+
+            <!-- ======== 页面 1：待办（无日期时间地点） ======== -->
+            <div class="page" id="page1">
+                <div class="header">
+                    <h1>待办</h1>
+                    <div class="header-actions">
+                        <button class="header-btn" onclick="clearCompleted2()" title="清除已完成">○</button>
+                    </div>
+                </div>
+
+                <div id="todoContainer2"></div>
+            </div>
+
+            <!-- ======== 页面 2：带日期时间的待办 ======== -->
+            <div class="page" id="page2">
+                <div class="header">
+                    <h1>ddl</h1>
+                    <div class="header-actions">
+                        <button class="header-btn" onclick="clearCompleted()" title="清除已完成">○</button>
+                    </div>
+                </div>
+
+                <div id="todoContainer"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===== 公共添加按钮 ===== -->
+    <button class="add-btn" id="addBtn" onclick="openAddForCurrentPage()">+</button>
+
+    <!-- ===== 弹窗 1：页面 1 新建/编辑（带日期时间地点） ===== -->
+    <div class="modal-overlay" id="todoModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">新建事项</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <form id="todoForm" onsubmit="return false;">
+                <input type="hidden" id="todoId">
+                <div class="form-group">
+                    <label class="form-label">日期 <span class="required">*</span></label>
+                    <div class="date-inputs">
+                        <input type="number" class="form-input" id="todoYear" placeholder="年" min="2024" max="2099">
+                        <span>-</span>
+                        <input type="number" class="form-input" id="todoMonth" placeholder="月" min="1" max="12">
+                        <span>-</span>
+                        <input type="number" class="form-input" id="todoDay" placeholder="日" min="1" max="31">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">标题 <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="todoTitle" placeholder="请输入标题">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">时间</label>
+                    <div class="time-inputs">
+                        <input type="number" class="form-input" id="todoTimeStartH" placeholder="时" min="0" max="23">
+                        <span>:</span>
+                        <input type="number" class="form-input" id="todoTimeStartM" placeholder="分" min="0" max="59">
+                        <span>-</span>
+                        <input type="number" class="form-input" id="todoTimeEndH" placeholder="时" min="0" max="23">
+                        <span>:</span>
+                        <input type="number" class="form-input" id="todoTimeEndM" placeholder="分" min="0" max="59">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">地点</label>
+                    <input type="text" class="form-input" id="todoLocation" placeholder="请输入地点">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">正文</label>
+                    <textarea class="form-input" id="todoContent" placeholder="请输入详细内容"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal()">取消</button>
+                    <button type="button" class="btn btn-confirm" onclick="saveTodo()">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== 弹窗 2：页面 2 新建/编辑（仅标题+正文） ===== -->
+    <div class="modal-overlay" id="todoModal2">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle2">新建待办</h2>
+                <button class="close-btn" onclick="closeModal2()">×</button>
+            </div>
+            <form id="todoForm2" onsubmit="return false;">
+                <input type="hidden" id="todoId2">
+                <div class="form-group">
+                    <label class="form-label">标题 <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="todoTitle2" placeholder="请输入标题">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">正文</label>
+                    <textarea class="form-input" id="todoContent2" placeholder="请输入详细内容"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal2()">取消</button>
+                    <button type="button" class="btn btn-confirm" onclick="saveTodo2()">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== 删除确认弹窗（共用） ===== -->
+    <div class="modal-overlay confirm-modal" id="confirmModal">
+        <div class="modal">
+            <p>确定要删除这个事项吗？</p>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeConfirm()">取消</button>
+                <button class="btn btn-delete" onclick="confirmDelete()">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 启动序列 + 粒子背景
+        // ============================================================
+        function escapeHtmlText(s) {
+            var div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+
+        function bootSequence() {
+            var boot = document.getElementById('bootScreen');
+            var log = document.getElementById('bootLog');
+            var todosCount = (JSON.parse(localStorage.getItem('todos') || '[]')).length;
+            var todos2Count = (JSON.parse(localStorage.getItem('todos2') || '[]')).length;
+            var lines = [
+                { t: '> 初始化任务核心', s: 'ok', d: 200 },
+                { t: '> 加载时间同步协议', s: 'ok', d: 280 },
+                { t: '> 校验本地数据完整性', s: 'ok', d: 250 },
+                { t: '> 待办: ' + todos2Count + ' 条 / ddl: ' + todosCount + ' 条', s: '', d: 300 },
+                { t: '> 建立量子隧道连接...', s: '', d: 350 },
+                { t: '> 警告: 离线模式', s: 'warn', d: 200 },
+                { t: '> 系统就绪', s: 'ok', d: 200 }
+            ];
+            var i = 0;
+            function next() {
+                if (i >= lines.length) {
+                    setTimeout(function() {
+                        boot.classList.add('hide');
+                        setTimeout(function() { boot.style.display = 'none'; }, 700);
+                    }, 400);
+                    return;
+                }
+                var L = lines[i];
+                var colorClass = L.s === 'ok' ? 'ok' : (L.s === 'warn' ? 'warn' : '');
+                var span = '<span class="' + colorClass + '">' + escapeHtmlText(L.t) + '</span>';
+                log.innerHTML += span + '<br>';
+                var curs = document.createElement('span');
+                curs.className = 'cursor';
+                log.appendChild(curs);
+                i++;
+                setTimeout(function() {
+                    if (curs && curs.parentNode) curs.parentNode.removeChild(curs);
+                    next();
+                }, L.d);
+            }
+            setTimeout(next, 300);
+        }
+        bootSequence();
+
+        function initParticles() {
+            var canvas = document.getElementById('particleCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var particles = [];
+            var COUNT = Math.min(50, Math.floor(window.innerWidth / 10));
+            var rafId = null;
+            var running = true;
+
+            function spawn() {
+                return {
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    vx: (Math.random() - 0.5) * 0.4,
+                    vy: (Math.random() - 0.5) * 0.4,
+                    r: Math.random() * 1.5 + 0.5,
+                    a: Math.random() * 0.5 + 0.2
+                };
+            }
+            for (var i = 0; i < COUNT; i++) particles.push(spawn());
+
+            function draw() {
+                if (!running) return;
+                ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+                for (var i = 0; i < particles.length; i++) {
+                    var p = particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0 || p.x > window.innerWidth) p.vx *= -1;
+                    if (p.y < 0 || p.y > window.innerHeight) p.vy *= -1;
+                    ctx.fillStyle = 'rgba(0, 240, 255, ' + p.a + ')';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                    for (var j = i + 1; j < particles.length; j++) {
+                        var q = particles[j];
+                        var dx = p.x - q.x, dy = p.y - q.y;
+                        var dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 100) {
+                            var alpha = (1 - dist / 100) * 0.15;
+                            ctx.strokeStyle = 'rgba(0, 240, 255, ' + alpha + ')';
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(q.x, q.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+                rafId = requestAnimationFrame(draw);
+            }
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    running = false;
+                    if (rafId) cancelAnimationFrame(rafId);
+                } else if (!running) {
+                    running = true;
+                    draw();
+                }
+            });
+            draw();
+        }
+        setTimeout(initParticles, 2400);
+
+        // ============================================================
+        // 页面 1：完整待办（带日期时间地点）
+        // ============================================================
+        let todos = JSON.parse(localStorage.getItem('todos') || '[]');
+        let deleteId = null;
+
+        function init() {
+            showPage(0);
+            renderTodos();
+            renderTodos2();
+            updatePageIndicator();
+        }
+
+        function renderTodos() {
+            const container = document.getElementById('todoContainer');
+            const pending = todos.filter(t => !t.completed).sort((a, b) => {
+                return new Date(a.date) - new Date(b.date);
+            });
+            const completed = todos.filter(t => t.completed).sort((a, b) => {
+                return new Date(b.completedAt || b.date) - new Date(a.completedAt || a.date);
+            });
+
+            let html = '';
+
+            if (pending.length > 0) {
+                html += '<div class="section-header">待办</div>';
+                html += '<div class="todo-list">';
+                pending.forEach(todo => { html += renderTodoItem(todo); });
+                html += '</div>';
+            }
+
+            if (completed.length > 0) {
+                html += '<div class="section-header">已完成</div>';
+                html += '<div class="todo-list">';
+                completed.forEach(todo => { html += renderTodoItem(todo); });
+                html += '</div>';
+            }
+
+            if (todos.length === 0) {
+                html = '<div class="empty-state">' +
+                       '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+                       '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>' +
+                       '<line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>' +
+                       '<line x1="3" y1="10" x2="21" y2="10"/>' +
+                       '</svg>' +
+                       '<div class="tip-title">NO DDL</div><p>暂无ddl<br>点击 + 添加新ddl</p></div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderTodoItem(todo) {
+            const days = getDaysUntil(todo.date);
+            const daysClass = getDaysClass(days, todo.completed);
+            const daysText = getDaysText(days, todo.completed);
+            const completedClass = todo.completed ? 'completed' : '';
+
+            return `
+                <div class="todo-item ${completedClass}" onclick="openEditModal('${todo.id}')">
+                    <div class="checkbox ${todo.completed ? 'checked' : ''}" onclick="event.stopPropagation(); toggleComplete('${todo.id}')"></div>
+                    <span class="days-badge ${daysClass}">${daysText}</span>
+                    <div class="todo-content">
+                        <div class="todo-title">${escapeHtml(todo.title)}</div>
+                        ${todo.location ? `<div class="todo-meta">▸ ${escapeHtml(todo.location)}</div>` : ''}
+                    </div>
+                    <div class="todo-date">${formatDate(todo.date)}</div>
+                </div>
+            `;
+        }
+
+        function getDaysUntil(dateStr) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const target = new Date(dateStr);
+            target.setHours(0, 0, 0, 0);
+            return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+        }
+
+        function getDaysClass(days, completed) {
+            if (completed) return 'done';
+            if (days < 0) return 'overdue';
+            if (days <= 3) return 'urgent';
+            if (days <= 7) return 'warning';
+            return 'normal';
+        }
+
+        function getDaysText(days, completed) {
+            if (completed) return '已完成';
+            if (days < 0) return `逾期${Math.abs(days)}天`;
+            if (days === 0) return '今天';
+            if (days === 1) return '明天';
+            return `${days}天后`;
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${month}/${day}`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function toggleComplete(id) {
+            const todo = todos.find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                todo.completedAt = todo.completed ? new Date().toISOString() : null;
+                saveTodos();
+                renderTodos();
+            }
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '新建事项';
+            document.getElementById('todoId').value = '';
+            document.getElementById('todoForm').reset();
+
+            const today = new Date();
+            document.getElementById('todoYear').value = today.getFullYear();
+            document.getElementById('todoMonth').value = today.getMonth() + 1;
+            document.getElementById('todoDay').value = today.getDate();
+
+            document.getElementById('todoModal').classList.add('active');
+        }
+
+        function openEditModal(id) {
+            const todo = todos.find(t => t.id === id);
+            if (!todo) return;
+
+            document.getElementById('modalTitle').textContent = '编辑事项';
+            document.getElementById('todoId').value = todo.id;
+
+            const date = new Date(todo.date);
+            document.getElementById('todoYear').value = date.getFullYear();
+            document.getElementById('todoMonth').value = date.getMonth() + 1;
+            document.getElementById('todoDay').value = date.getDate();
+
+            document.getElementById('todoTitle').value = todo.title;
+
+            if (todo.time) {
+                const [start, end] = todo.time.split('-');
+                if (start) {
+                    const [sh, sm] = start.split(':');
+                    document.getElementById('todoTimeStartH').value = sh || '';
+                    document.getElementById('todoTimeStartM').value = sm || '';
+                }
+                if (end) {
+                    const [eh, em] = end.split(':');
+                    document.getElementById('todoTimeEndH').value = eh || '';
+                    document.getElementById('todoTimeEndM').value = em || '';
+                }
+            }
+
+            document.getElementById('todoLocation').value = todo.location || '';
+            document.getElementById('todoContent').value = todo.content || '';
+
+            document.getElementById('todoModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('todoModal').classList.remove('active');
+        }
+
+        function saveTodo() {
+            const id = document.getElementById('todoId').value;
+            const year = document.getElementById('todoYear').value;
+            const month = document.getElementById('todoMonth').value;
+            const day = document.getElementById('todoDay').value;
+            const title = document.getElementById('todoTitle').value.trim();
+
+            if (!year || !month || !day) {
+                alert('请填写日期');
+                return;
+            }
+            if (!title) {
+                alert('请填写标题');
+                return;
+            }
+
+            const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            const startH = document.getElementById('todoTimeStartH').value;
+            const startM = document.getElementById('todoTimeStartM').value;
+            const endH = document.getElementById('todoTimeEndH').value;
+            const endM = document.getElementById('todoTimeEndM').value;
+            let time = '';
+            if (startH || startM) {
+                time += `${String(startH || '00').padStart(2, '0')}:${String(startM || '00').padStart(2, '0')}`;
+            }
+            if (endH || endM) {
+                time += `-${String(endH || '00').padStart(2, '0')}:${String(endM || '00').padStart(2, '0')}`;
+            }
+
+            const location = document.getElementById('todoLocation').value.trim();
+            const content = document.getElementById('todoContent').value.trim();
+
+            if (id) {
+                const todo = todos.find(t => t.id === id);
+                if (todo) {
+                    todo.date = date;
+                    todo.title = title;
+                    todo.time = time;
+                    todo.location = location;
+                    todo.content = content;
+                }
+            } else {
+                todos.push({
+                    id: Date.now().toString(),
+                    date,
+                    title,
+                    time,
+                    location,
+                    content,
+                    completed: false,
+                    completedAt: null,
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            saveTodos();
+            closeModal();
+            renderTodos();
+        }
+
+        function openConfirm(id) {
+            deleteId = id;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function closeConfirm() {
+            deleteId = null;
+            deleteId2 = null;
+            document.getElementById('confirmModal').classList.remove('active');
+        }
+
+        function confirmDelete() {
+            if (deleteId) {
+                todos = todos.filter(t => t.id !== deleteId);
+                saveTodos();
+                renderTodos();
+                deleteId = null;
+            } else if (deleteId2) {
+                todos2 = todos2.filter(t => t.id !== deleteId2);
+                saveTodos2();
+                renderTodos2();
+                deleteId2 = null;
+            }
+            closeConfirm();
+        }
+
+        function clearCompleted() {
+            const completedCount = todos.filter(t => t.completed).length;
+            if (completedCount === 0) {
+                alert('没有已完成的事项');
+                return;
+            }
+            if (confirm(`确定要清除 ${completedCount} 个已完成事项吗？`)) {
+                todos = todos.filter(t => !t.completed);
+                saveTodos();
+                renderTodos();
+            }
+        }
+
+        function saveTodos() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+
+        // ============================================================
+        // 页面 2：待办（无日期时间地点，仅有标题+正文）
+        // ============================================================
+        let todos2 = JSON.parse(localStorage.getItem('todos2') || '[]');
+        let deleteId2 = null;
+
+        function renderTodos2() {
+            const container = document.getElementById('todoContainer2');
+            const pending = todos2.filter(t => !t.completed);
+            const completed = todos2.filter(t => t.completed);
+
+            let html = '';
+
+            if (pending.length > 0) {
+                html += '<div class="section-header">未完成</div>';
+                html += '<div class="todo-list">';
+                pending.forEach(todo => { html += renderTodoItem2(todo); });
+                html += '</div>';
+            }
+
+            if (completed.length > 0) {
+                html += '<div class="section-header">已完成</div>';
+                html += '<div class="todo-list">';
+                completed.forEach(todo => { html += renderTodoItem2(todo); });
+                html += '</div>';
+            }
+
+            if (todos2.length === 0) {
+                html = '<div class="empty-state">' +
+                       '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+                       '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>' +
+                       '</svg>' +
+                       '<div class="tip-title">NO TASK</div><p>暂无待办<br>点击 + 添加新待办</p></div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderTodoItem2(todo) {
+            const completedClass = todo.completed ? 'completed' : '';
+
+            return `
+                <div class="todo-item ${completedClass}" onclick="openEditModal2('${todo.id}')">
+                    <div class="checkbox ${todo.completed ? 'checked' : ''}" onclick="event.stopPropagation(); toggleComplete2('${todo.id}')"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">${escapeHtml(todo.title)}</div>
+                        ${todo.content ? `<div class="todo-meta">${escapeHtml(todo.content)}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleComplete2(id) {
+            const todo = todos2.find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                todo.completedAt = todo.completed ? new Date().toISOString() : null;
+                saveTodos2();
+                renderTodos2();
+            }
+        }
+
+        function openAddModal2() {
+            document.getElementById('modalTitle2').textContent = '新建待办';
+            document.getElementById('todoId2').value = '';
+            document.getElementById('todoForm2').reset();
+            document.getElementById('todoModal2').classList.add('active');
+        }
+
+        function openEditModal2(id) {
+            const todo = todos2.find(t => t.id === id);
+            if (!todo) return;
+
+            document.getElementById('modalTitle2').textContent = '编辑待办';
+            document.getElementById('todoId2').value = todo.id;
+            document.getElementById('todoTitle2').value = todo.title;
+            document.getElementById('todoContent2').value = todo.content || '';
+
+            document.getElementById('todoModal2').classList.add('active');
+        }
+
+        function closeModal2() {
+            document.getElementById('todoModal2').classList.remove('active');
+        }
+
+        function saveTodo2() {
+            const id = document.getElementById('todoId2').value;
+            const title = document.getElementById('todoTitle2').value.trim();
+            const content = document.getElementById('todoContent2').value.trim();
+
+            if (!title) {
+                alert('请填写标题');
+                return;
+            }
+
+            if (id) {
+                const todo = todos2.find(t => t.id === id);
+                if (todo) {
+                    todo.title = title;
+                    todo.content = content;
+                }
+            } else {
+                todos2.push({
+                    id: Date.now().toString(),
+                    title,
+                    content,
+                    completed: false,
+                    completedAt: null,
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            saveTodos2();
+            closeModal2();
+            renderTodos2();
+        }
+
+        function clearCompleted2() {
+            const completedCount = todos2.filter(t => t.completed).length;
+            if (completedCount === 0) {
+                alert('没有已完成的待办');
+                return;
+            }
+            if (confirm(`确定要清除 ${completedCount} 个已完成待办吗？`)) {
+                todos2 = todos2.filter(t => !t.completed);
+                saveTodos2();
+                renderTodos2();
+            }
+        }
+
+        function saveTodos2() {
+            localStorage.setItem('todos2', JSON.stringify(todos2));
+        }
+
+        // ============================================================
+        // 页面切换 & 滑动检测
+        // ============================================================
+        let currentPage = 0;
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        function showPage(index) {
+            currentPage = index;
+            const wrapper = document.getElementById('appWrapper');
+            if (index === 0) {
+                wrapper.classList.remove('show-second');
+            } else {
+                wrapper.classList.add('show-second');
+            }
+            updatePageIndicator();
+        }
+
+        function updatePageIndicator() {
+            const dots = document.querySelectorAll('.page-dot');
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentPage);
+            });
+        }
+
+        function openAddForCurrentPage() {
+            if (currentPage === 0) {
+                openAddModal2();
+            } else {
+                openAddModal();
+            }
+        }
+
+        const viewport = document.getElementById('appViewport');
+
+        viewport.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        viewport.addEventListener('touchend', function(e) {
+            if (!touchStartX) return;
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            const dy = e.changedTouches[0].clientY - touchStartY;
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+
+            if (absDx > absDy && absDx > 40) {
+                if (dx < 0 && currentPage === 0) {
+                    showPage(1);
+                } else if (dx > 0 && currentPage === 1) {
+                    showPage(0);
+                }
+            }
+
+            touchStartX = 0;
+            touchStartY = 0;
+        }, { passive: true });
+
+        init();
+    </script>
+</body>
+</html>
