@@ -364,7 +364,7 @@
 
         .todo-item {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             padding: 14px 16px;
             background: var(--light-card);
             border-radius: var(--r-lg);
@@ -373,6 +373,7 @@
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
+            overflow: hidden;
         }
 
         .todo-item::before {
@@ -498,8 +499,6 @@
             color: var(--text-dark-muted);
             margin-top: 4px;
             letter-spacing: 0.03em;
-            white-space: pre-wrap;
-            word-break: break-word;
         }
 
         /* ===== 日期 ===== */
