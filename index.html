@@ -862,7 +862,7 @@
     <div class="modal-overlay" id="todoModal">
         <div class="modal">
             <div class="modal-header">
-                <h2 id="modalTitle">新建事项</h2>
+                <h2 id="modalTitle">新建ddl</h2>
                 <button class="close-btn" onclick="closeModal()">×</button>
             </div>
             <form id="todoForm" onsubmit="return false;">
@@ -1176,7 +1176,7 @@
         }
 
         function openAddModal() {
-            document.getElementById('modalTitle').textContent = '新建事项';
+            document.getElementById('modalTitle').textContent = '新建ddl';
             document.getElementById('todoId').value = '';
             document.getElementById('todoForm').reset();
 
@@ -1192,7 +1192,7 @@
             const todo = todos.find(t => t.id === id);
             if (!todo) return;
 
-            document.getElementById('modalTitle').textContent = '编辑事项';
+            document.getElementById('modalTitle').textContent = '编辑ddl';
             document.getElementById('todoId').value = todo.id;
 
             const date = new Date(todo.date);
