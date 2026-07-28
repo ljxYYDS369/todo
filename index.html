@@ -828,9 +828,6 @@
         <span class="page-dot"></span>
     </div>
 
-    <!-- 调试：测试震动（固定在右上角） -->
-    <button onclick="testVibrate()" style="position:fixed;top:calc(var(--safe-top) + 14px);right:16px;z-index:102;padding:6px 12px;background:var(--dark-1);color:var(--neon-cyan);border:1px solid var(--neon-cyan);border-radius:var(--r-full);font-family:var(--font-mono);font-size:10px;box-shadow:var(--glow-cyan);">测试震动</button>
-
     <!-- ===== 三页面滑动容器：随手记(0) → 待办(1) → ddl(2) ===== -->
     <div class="app-viewport" id="appViewport">
         <div class="app-wrapper" id="appWrapper">
@@ -1225,56 +1222,6 @@
             return div.innerHTML;
         }
 
-        // 手机震动反馈（不支持时静默忽略）
-        function haptic(ms) {
-            try {
-                if (navigator.vibrate) navigator.vibrate(ms);
-                else if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(ms);
-            } catch (e) {}
-        }
-
-        // 调试：测试震动是否可用
-        function testVibrate() {
-            var support = navigator.vibrate || (window.navigator && window.navigator.vibrate);
-            var msg = 'Vibration API 支持: ' + (support ? '是' : '否') + '\n';
-            msg += 'navigator.vibrate: ' + (navigator.vibrate ? '存在' : '不存在') + '\n';
-            if (support) {
-                navigator.vibrate([100, 50, 100, 50, 200]);
-                msg += '已调用震动（长模式），如果没震：\n→ 荣耀手机需在 设置→声音和振动→触感反馈 开启\n→ Edge 浏览器需在 设置→站点设置→振动 允许';
-            }
-            alert(msg);
-        }
-
-        // 提示音（Web Audio API 合成短促"嘀"声，iOS Safari 也支持）
-        var _audioCtx = null;
-        function beep(freq, duration, type, gain) {
-            try {
-                if (!_audioCtx) {
-                    var AC = window.AudioContext || window.webkitAudioContext;
-                    if (!AC) return;
-                    _audioCtx = new AC();
-                }
-                if (_audioCtx.state === 'suspended') _audioCtx.resume();
-                var osc = _audioCtx.createOscillator();
-                var g = _audioCtx.createGain();
-                osc.type = type || 'sine';
-                osc.frequency.value = freq || 880;
-                var t = _audioCtx.currentTime;
-                var vol = gain || 0.15;
-                g.gain.setValueAtTime(0, t);
-                g.gain.linearRampToValueAtTime(vol, t + 0.005);
-                g.gain.exponentialRampToValueAtTime(0.0001, t + (duration || 0.08));
-                osc.connect(g).connect(_audioCtx.destination);
-                osc.start(t);
-                osc.stop(t + (duration || 0.08));
-            } catch (e) {}
-        }
-
-        // 综合反馈：震动 + 提示音同时触发
-        function feedback() {
-            haptic(50);
-        }
-
         function toggleComplete(id) {
             const todo = todos.find(t => t.id === id);
             if (todo) {
@@ -1286,7 +1233,6 @@
         }
 
         function openAddModal() {
-            feedback();
             document.getElementById('modalTitle').textContent = '新建ddl';
             document.getElementById('todoId').value = '';
             document.getElementById('todoForm').reset();
@@ -1300,7 +1246,6 @@
         }
 
         function openEditModal(id) {
-            feedback();
             const todo = todos.find(t => t.id === id);
             if (!todo) return;
 
@@ -1507,7 +1452,6 @@
         }
 
         function openAddModal2() {
-            feedback();
             document.getElementById('modalTitle2').textContent = '新建待办';
             document.getElementById('todoId2').value = '';
             document.getElementById('todoForm2').reset();
@@ -1515,7 +1459,6 @@
         }
 
         function openEditModal2(id) {
-            feedback();
             const todo = todos2.find(t => t.id === id);
             if (!todo) return;
 
@@ -1645,7 +1588,6 @@
         }
 
         function openAddNote() {
-            feedback();
             document.getElementById('modalTitle3').textContent = '新建随手记';
             document.getElementById('todoId3').value = '';
             document.getElementById('todoForm3').reset();
@@ -1653,7 +1595,6 @@
         }
 
         function openEditNote(id) {
-            feedback();
             const note = notes.find(n => n.id === id);
             if (!note) return;
 
