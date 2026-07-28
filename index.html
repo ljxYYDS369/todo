@@ -1224,7 +1224,41 @@
 
         // 手机震动反馈（不支持时静默忽略）
         function haptic(ms) {
-            if (navigator.vibrate) navigator.vibrate(ms);
+            try {
+                if (navigator.vibrate) navigator.vibrate(ms);
+                else if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(ms);
+            } catch (e) {}
+        }
+
+        // 提示音（Web Audio API 合成短促"嘀"声，iOS Safari 也支持）
+        var _audioCtx = null;
+        function beep(freq, duration, type, gain) {
+            try {
+                if (!_audioCtx) {
+                    var AC = window.AudioContext || window.webkitAudioContext;
+                    if (!AC) return;
+                    _audioCtx = new AC();
+                }
+                if (_audioCtx.state === 'suspended') _audioCtx.resume();
+                var osc = _audioCtx.createOscillator();
+                var g = _audioCtx.createGain();
+                osc.type = type || 'sine';
+                osc.frequency.value = freq || 880;
+                var t = _audioCtx.currentTime;
+                var vol = gain || 0.15;
+                g.gain.setValueAtTime(0, t);
+                g.gain.linearRampToValueAtTime(vol, t + 0.005);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + (duration || 0.08));
+                osc.connect(g).connect(_audioCtx.destination);
+                osc.start(t);
+                osc.stop(t + (duration || 0.08));
+            } catch (e) {}
+        }
+
+        // 综合反馈：震动 + 提示音同时触发
+        function feedback() {
+            haptic(20);
+            beep(880, 0.08, 'sine', 0.12);
         }
 
         function toggleComplete(id) {
@@ -1238,7 +1272,7 @@
         }
 
         function openAddModal() {
-            haptic(15);
+            feedback();
             document.getElementById('modalTitle').textContent = '新建ddl';
             document.getElementById('todoId').value = '';
             document.getElementById('todoForm').reset();
@@ -1252,7 +1286,7 @@
         }
 
         function openEditModal(id) {
-            haptic(15);
+            feedback();
             const todo = todos.find(t => t.id === id);
             if (!todo) return;
 
@@ -1459,7 +1493,7 @@
         }
 
         function openAddModal2() {
-            haptic(15);
+            feedback();
             document.getElementById('modalTitle2').textContent = '新建待办';
             document.getElementById('todoId2').value = '';
             document.getElementById('todoForm2').reset();
@@ -1467,7 +1501,7 @@
         }
 
         function openEditModal2(id) {
-            haptic(15);
+            feedback();
             const todo = todos2.find(t => t.id === id);
             if (!todo) return;
 
@@ -1597,7 +1631,7 @@
         }
 
         function openAddNote() {
-            haptic(15);
+            feedback();
             document.getElementById('modalTitle3').textContent = '新建随手记';
             document.getElementById('todoId3').value = '';
             document.getElementById('todoForm3').reset();
@@ -1605,7 +1639,7 @@
         }
 
         function openEditNote(id) {
-            haptic(15);
+            feedback();
             const note = notes.find(n => n.id === id);
             if (!note) return;
 
