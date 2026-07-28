@@ -1222,6 +1222,11 @@
             return div.innerHTML;
         }
 
+        // 手机震动反馈（不支持时静默忽略）
+        function haptic(ms) {
+            if (navigator.vibrate) navigator.vibrate(ms);
+        }
+
         function toggleComplete(id) {
             const todo = todos.find(t => t.id === id);
             if (todo) {
@@ -1233,6 +1238,7 @@
         }
 
         function openAddModal() {
+            haptic(15);
             document.getElementById('modalTitle').textContent = '新建ddl';
             document.getElementById('todoId').value = '';
             document.getElementById('todoForm').reset();
@@ -1246,6 +1252,7 @@
         }
 
         function openEditModal(id) {
+            haptic(15);
             const todo = todos.find(t => t.id === id);
             if (!todo) return;
 
@@ -1452,6 +1459,7 @@
         }
 
         function openAddModal2() {
+            haptic(15);
             document.getElementById('modalTitle2').textContent = '新建待办';
             document.getElementById('todoId2').value = '';
             document.getElementById('todoForm2').reset();
@@ -1459,6 +1467,7 @@
         }
 
         function openEditModal2(id) {
+            haptic(15);
             const todo = todos2.find(t => t.id === id);
             if (!todo) return;
 
@@ -1588,6 +1597,7 @@
         }
 
         function openAddNote() {
+            haptic(15);
             document.getElementById('modalTitle3').textContent = '新建随手记';
             document.getElementById('todoId3').value = '';
             document.getElementById('todoForm3').reset();
@@ -1595,6 +1605,7 @@
         }
 
         function openEditNote(id) {
+            haptic(15);
             const note = notes.find(n => n.id === id);
             if (!note) return;
 
