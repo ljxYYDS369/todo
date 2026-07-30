@@ -119,6 +119,45 @@
             100% { top: 100vh; }
         }
 
+        /* ===== 故障文字崩坏特效 ===== */
+        .glitch {
+            position: relative;
+            display: inline-block;
+        }
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .glitch::before {
+            color: var(--neon-magenta);
+            animation: glitch-anim-1 2.5s infinite linear alternate-reverse;
+            z-index: 2;
+        }
+        .glitch::after {
+            color: var(--neon-cyan);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+            z-index: 1;
+        }
+        @keyframes glitch-anim-1 {
+            0%, 100% { transform: translate(0); clip-path: inset(0 0 0 0); }
+            20% { transform: translate(-2px, 1px); clip-path: inset(20% 0 40% 0); }
+            40% { transform: translate(2px, -1px); clip-path: inset(60% 0 10% 0); }
+            60% { transform: translate(-1px, 2px); clip-path: inset(30% 0 50% 0); }
+            80% { transform: translate(1px, -2px); clip-path: inset(70% 0 20% 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0%, 100% { transform: translate(0); clip-path: inset(0 0 0 0); }
+            25% { transform: translate(2px, 1px); clip-path: inset(10% 0 80% 0); }
+            50% { transform: translate(-2px, -1px); clip-path: inset(50% 0 30% 0); }
+            75% { transform: translate(1px, 2px); clip-path: inset(30% 0 60% 0); }
+        }
+
         #particleCanvas {
             position: fixed;
             inset: 0;
@@ -809,7 +848,7 @@
     <!-- ===== 启动屏 ===== -->
     <div id="bootScreen">
         <div class="boot-logo">
-            TASK<span style="color: var(--neon-green)">//</span>NET
+            <span class="glitch" data-text="TASK//NET">TASK<span style="color: var(--neon-green)">//</span>NET</span>
             <span class="sub">DEADLINE PROTOCOL v3.1.0</span>
         </div>
         <div class="boot-log" id="bootLog"></div>
@@ -835,7 +874,7 @@
             <!-- ======== 页面 0：随手记（标题+正文） ======== -->
             <div class="page" id="page0">
                 <div class="header">
-                    <h1>随手记</h1>
+                    <h1><span class="glitch" data-text="随手记">随手记</span></h1>
                     <div class="header-actions">
                         <button class="header-btn" onclick="clearCompletedNotes()" title="清除已完成">○</button>
                     </div>
@@ -847,7 +886,7 @@
             <!-- ======== 页面 1：待办（标题+正文） ======== -->
             <div class="page" id="page1">
                 <div class="header">
-                    <h1>待办</h1>
+                    <h1><span class="glitch" data-text="待办">待办</span></h1>
                     <div class="header-actions">
                         <button class="header-btn" onclick="clearCompleted2()" title="清除已完成">○</button>
                     </div>
@@ -859,7 +898,7 @@
             <!-- ======== 页面 2：ddl（带日期时间地点） ======== -->
             <div class="page" id="page2">
                 <div class="header">
-                    <h1>ddl</h1>
+                    <h1><span class="glitch" data-text="ddl">ddl</span></h1>
                     <div class="header-actions">
                         <button class="header-btn" onclick="clearCompleted()" title="清除已完成">○</button>
                     </div>
