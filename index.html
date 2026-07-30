@@ -1216,7 +1216,7 @@
                     <div class="checkbox ${todo.completed ? 'checked' : ''}" onclick="event.stopPropagation(); toggleComplete('${todo.id}')"></div>
                     <span class="days-badge ${daysClass}">${daysText}</span>
                     <div class="todo-content">
-                        <div class="todo-title"><span class="glitch" data-text="${escapeAttr(todo.title)}">${escapeHtml(todo.title)}</span></div>
+                        <div class="todo-title">${escapeHtml(todo.title)}</div>
                         ${todo.location ? `<div class="todo-meta">▸ ${escapeHtml(todo.location)}</div>` : ''}
                     </div>
                     <div class="todo-date">${formatDate(todo.date)}</div>
@@ -1477,7 +1477,7 @@
                 <div class="todo-item ${completedClass}" onclick="openEditModal2('${todo.id}')">
                     <div class="checkbox ${todo.completed ? 'checked' : ''}" onclick="event.stopPropagation(); toggleComplete2('${todo.id}')"></div>
                     <div class="todo-content">
-                        <div class="todo-title"><span class="glitch" data-text="${escapeAttr(todo.title)}">${escapeHtml(todo.title)}</span></div>
+                        <div class="todo-title">${escapeHtml(todo.title)}</div>
                         ${todo.content ? `<div class="todo-meta">${escapeHtml(todo.content)}</div>` : ''}
                     </div>
                 </div>
@@ -1613,7 +1613,7 @@
                 <div class="todo-item ${completedClass}" onclick="openEditNote('${note.id}')">
                     <div class="checkbox ${note.completed ? 'checked' : ''}" onclick="event.stopPropagation(); toggleCompleteNote('${note.id}')"></div>
                     <div class="todo-content">
-                        <div class="todo-title"><span class="glitch" data-text="${escapeAttr(note.title)}">${escapeHtml(note.title)}</span></div>
+                        <div class="todo-title">${escapeHtml(note.title)}</div>
                         ${note.content ? `<div class="todo-meta">${escapeHtml(note.content)}</div>` : ''}
                     </div>
                 </div>
