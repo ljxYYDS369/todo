@@ -1287,6 +1287,7 @@
             document.getElementById('todoDay').value = today.getDate();
 
             document.getElementById('todoModal').classList.add('active');
+            history.pushState(null, '', location.href);
         }
 
         function openEditModal(id) {
@@ -1322,6 +1323,7 @@
             contentEl.value = todo.content || '';
 
             document.getElementById('todoModal').classList.add('active');
+            history.pushState(null, '', location.href);
             requestAnimationFrame(function() { autoGrowTextarea(contentEl); });
         }
 
@@ -1500,6 +1502,7 @@
             document.getElementById('todoId2').value = '';
             document.getElementById('todoForm2').reset();
             document.getElementById('todoModal2').classList.add('active');
+            history.pushState(null, '', location.href);
         }
 
         function openEditModal2(id) {
@@ -1513,6 +1516,7 @@
             contentEl2.value = todo.content || '';
 
             document.getElementById('todoModal2').classList.add('active');
+            history.pushState(null, '', location.href);
             requestAnimationFrame(function() { autoGrowTextarea(contentEl2); });
         }
 
@@ -1636,6 +1640,7 @@
             document.getElementById('todoId3').value = '';
             document.getElementById('todoForm3').reset();
             document.getElementById('todoModal3').classList.add('active');
+            history.pushState(null, '', location.href);
         }
 
         function openEditNote(id) {
@@ -1649,6 +1654,7 @@
             contentEl3.value = note.content || '';
 
             document.getElementById('todoModal3').classList.add('active');
+            history.pushState(null, '', location.href);
             requestAnimationFrame(function() { autoGrowTextarea(contentEl3); });
         }
 
@@ -1762,6 +1768,19 @@
             touchStartX = 0;
             touchStartY = 0;
         }, { passive: true });
+
+        // 手机返回键：关闭当前打开的编辑弹窗
+        window.addEventListener('popstate', function() {
+            var modals = ['todoModal', 'todoModal2', 'todoModal3'];
+            var opened = modals.filter(function(id) {
+                return document.getElementById(id).classList.contains('active');
+            });
+            if (opened.length > 0) {
+                var modalId = opened[opened.length - 1];
+                document.getElementById(modalId).classList.remove('active');
+                history.pushState(null, '', location.href);
+            }
+        });
 
         init();
     </script>
