@@ -835,31 +835,6 @@
             letter-spacing: 0.05em;
         }
 
-        /* ===== Toast 提示 ===== */
-        .toast {
-            position: fixed;
-            left: 50%;
-            bottom: calc(var(--safe-bottom) + 110px);
-            transform: translateX(-50%) translateY(10px);
-            background: var(--dark-2);
-            color: var(--text-cyan);
-            font-family: var(--font-mono);
-            font-size: 12px;
-            letter-spacing: 0.05em;
-            padding: 10px 20px;
-            border-radius: var(--r-full);
-            border: 1px solid rgba(57, 255, 20, 0.35);
-            box-shadow: var(--glow-cyan);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s, transform 0.25s;
-            z-index: 300;
-        }
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
         /* ===== 减少动画偏好 ===== */
         @media (prefers-reduced-motion: reduce) {
             .scan-beam, .boot-progress::after, .add-btn, #bootScreen {
@@ -1050,9 +1025,6 @@
             </div>
         </div>
     </div>
-
-    <!-- ===== Toast 提示 ===== -->
-    <div class="toast" id="toast"></div>
 
     <script>
         // ============================================================
@@ -1797,19 +1769,7 @@
             touchStartY = 0;
         }, { passive: true });
 
-        // ===== Toast 提示 =====
-        var toastTimer = null;
-        function showToast(msg) {
-            var t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            if (toastTimer) clearTimeout(toastTimer);
-            toastTimer = setTimeout(function() { t.classList.remove('show'); }, 1500);
-        }
-
-        // 手机返回键：有弹窗先关弹窗；无弹窗时双按才退出网站
-        var lastBackTime = 0;
-        history.pushState(null, '', location.href);
+        // 手机返回键：关闭当前打开的编辑弹窗
         window.addEventListener('popstate', function() {
             var modals = ['todoModal', 'todoModal2', 'todoModal3'];
             var opened = modals.filter(function(id) {
@@ -1818,14 +1778,6 @@
             if (opened.length > 0) {
                 var modalId = opened[opened.length - 1];
                 document.getElementById(modalId).classList.remove('active');
-                history.pushState(null, '', location.href);
-                return;
-            }
-            // 无弹窗：2 秒内第二次按返回才真正退出
-            var now = Date.now();
-            if (now - lastBackTime > 2000) {
-                lastBackTime = now;
-                showToast('再按一次退出');
                 history.pushState(null, '', location.href);
             }
         });
