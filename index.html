@@ -1769,7 +1769,10 @@
             touchStartY = 0;
         }, { passive: true });
 
-        // 手机返回键：关闭当前打开的编辑弹窗
+        // 手机返回键：只关闭弹窗回退，不退出网站
+        // 加载时先压入一条占位记录，之后每次 popstate 都重新压入，
+        // 保证浏览器始终有可回退的页内记录，不会退出到站外
+        history.pushState(null, '', location.href);
         window.addEventListener('popstate', function() {
             var modals = ['todoModal', 'todoModal2', 'todoModal3'];
             var opened = modals.filter(function(id) {
@@ -1778,8 +1781,8 @@
             if (opened.length > 0) {
                 var modalId = opened[opened.length - 1];
                 document.getElementById(modalId).classList.remove('active');
-                history.pushState(null, '', location.href);
             }
+            history.pushState(null, '', location.href);
         });
 
         init();
