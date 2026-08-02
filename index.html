@@ -677,6 +677,61 @@
             line-height: 1.5;
         }
 
+        /* ===== 复制按钮 ===== */
+        .copy-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+        .copy-row .form-input {
+            flex: 1;
+            min-width: 0;
+        }
+        .copy-btn {
+            flex-shrink: 0;
+            width: 44px;
+            background: var(--dark-1);
+            border: 1px solid rgba(57, 255, 20, 0.3);
+            border-radius: var(--r-md);
+            color: var(--neon-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .copy-btn:active {
+            background: var(--dark-3);
+            box-shadow: var(--glow-cyan);
+            transform: scale(0.95);
+        }
+        .copy-btn svg { width: 18px; height: 18px; }
+
+        /* ===== Toast 提示 ===== */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(var(--safe-bottom) + 24px);
+            transform: translateX(-50%) translateY(10px);
+            background: var(--dark-2);
+            color: var(--neon-cyan);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            letter-spacing: 0.05em;
+            padding: 10px 20px;
+            border-radius: var(--r-full);
+            border: 1px solid rgba(57, 255, 20, 0.35);
+            box-shadow: var(--glow-cyan);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s, transform 0.25s;
+            z-index: 300;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         .date-inputs {
             display: flex;
             gap: 8px;
@@ -1001,11 +1056,27 @@
                 <input type="hidden" id="todoId3">
                 <div class="form-group">
                     <label class="form-label">标题 <span class="required">*</span></label>
-                    <input type="text" class="form-input" id="todoTitle3" placeholder="请输入标题">
+                    <div class="copy-row">
+                        <input type="text" class="form-input" id="todoTitle3" placeholder="请输入标题">
+                        <button type="button" class="copy-btn" data-copy="todoTitle3" aria-label="复制标题">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">正文</label>
-                    <textarea class="form-input" id="todoContent3" placeholder="请输入详细内容"></textarea>
+                    <div class="copy-row">
+                        <textarea class="form-input" id="todoContent3" placeholder="请输入详细内容"></textarea>
+                        <button type="button" class="copy-btn" data-copy="todoContent3" aria-label="复制正文">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-cancel" onclick="closeModal3()">取消</button>
@@ -1025,6 +1096,9 @@
             </div>
         </div>
     </div>
+
+    <!-- ===== Toast 提示 ===== -->
+    <div class="toast" id="toast"></div>
 
     <script>
         // ============================================================
@@ -1781,6 +1855,48 @@
                 history.pushState(null, '', location.href);
             }
         });
+
+        // ===== Toast 提示 =====
+        var toastTimer = null;
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = msg;
+            t.classList.add('show');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(function() { t.classList.remove('show'); }, 1500);
+        }
+
+        // ===== 复制功能 =====
+        document.querySelectorAll('.copy-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var targetId = btn.getAttribute('data-copy');
+                var el = document.getElementById(targetId);
+                var text = el ? el.value : '';
+                if (!text) { showToast('内容为空'); return; }
+                copyText(text, function(ok) { showToast(ok ? '已复制' : '复制失败'); });
+            });
+        });
+
+        function copyText(text, cb) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() { cb(true); }).catch(function() { fallbackCopy(text, cb); });
+            } else { fallbackCopy(text, cb); }
+        }
+
+        function fallbackCopy(text, cb) {
+            try {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.top = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                var ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                cb(ok);
+            } catch (e) { cb(false); }
+        }
 
         init();
     </script>
