@@ -787,8 +787,8 @@
         .toast {
             position: fixed;
             left: 50%;
-            bottom: calc(var(--safe-bottom) + 24px);
-            transform: translateX(-50%) translateY(10px);
+            top: 50%;
+            transform: translate(-50%, -50%) translateY(10px);
             background: var(--dark-2);
             color: var(--neon-cyan);
             font-family: var(--font-mono);
@@ -805,7 +805,7 @@
         }
         .toast.show {
             opacity: 1;
-            transform: translateX(-50%) translateY(0);
+            transform: translate(-50%, -50%) translateY(0);
         }
 
         .date-inputs {
