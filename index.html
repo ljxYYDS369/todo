@@ -1748,6 +1748,8 @@
                 return !keyword ||
                     (n.title && n.title.toLowerCase().indexOf(keyword) >= 0) ||
                     (n.content && n.content.toLowerCase().indexOf(keyword) >= 0);
+            }).sort((a, b) => {
+                return new Date(b.createdAt) - new Date(a.createdAt);
             });
             let html = '';
 
