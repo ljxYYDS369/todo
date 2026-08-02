@@ -1233,7 +1233,15 @@
             }
             setTimeout(next, 300);
         }
-        bootSequence();
+        // 首次打开播放开机动画并记录标记，之后打开直接跳过动画
+        if (localStorage.getItem('bootSeen')) {
+            var bootScreenEl = document.getElementById('bootScreen');
+            bootScreenEl.classList.add('hide');
+            setTimeout(function() { bootScreenEl.style.display = 'none'; }, 700);
+        } else {
+            localStorage.setItem('bootSeen', '1');
+            bootSequence();
+        }
 
         function initParticles() {
             var canvas = document.getElementById('particleCanvas');
