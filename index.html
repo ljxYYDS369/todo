@@ -1749,22 +1749,11 @@
                     (n.title && n.title.toLowerCase().indexOf(keyword) >= 0) ||
                     (n.content && n.content.toLowerCase().indexOf(keyword) >= 0);
             });
-            const pending = filtered.filter(n => !n.completed);
-            const completed = filtered.filter(n => n.completed);
-
             let html = '';
 
-            if (pending.length > 0) {
-                html += '<div class="section-header">未完成</div>';
+            if (filtered.length > 0) {
                 html += '<div class="todo-list">';
-                pending.forEach(note => { html += renderNoteItem(note); });
-                html += '</div>';
-            }
-
-            if (completed.length > 0) {
-                html += '<div class="section-header">已完成</div>';
-                html += '<div class="todo-list">';
-                completed.forEach(note => { html += renderNoteItem(note); });
+                filtered.forEach(note => { html += renderNoteItem(note); });
                 html += '</div>';
             }
 
@@ -1866,14 +1855,13 @@
         function clearCompletedNotes() {
             const completedCount = notes.filter(n => n.completed).length;
             if (completedCount === 0) {
-                alert('没有已完成的随手记');
+                showToast('没有已勾选的随手记');
                 return;
             }
-            if (confirm(`确定要清除 ${completedCount} 个已完成随手记吗？`)) {
-                notes = notes.filter(n => !n.completed);
-                saveNotes();
-                renderNotes(document.getElementById('noteSearchInput').value);
-            }
+            notes = notes.filter(n => !n.completed);
+            saveNotes();
+            renderNotes(document.getElementById('noteSearchInput').value);
+            showToast('已删除 ' + completedCount + ' 条');
         }
 
         function saveNotes() {
