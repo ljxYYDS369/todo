@@ -253,7 +253,7 @@
             100% { width: 100%; }
         }
 
-        /* ===== 三页面滑动容器 ===== */
+        /* ===== 四页面滑动容器 ===== */
         .app-viewport {
             width: 100vw;
             height: 100vh;
@@ -264,19 +264,20 @@
 
         .app-wrapper {
             display: flex;
-            width: 300%;
+            width: 400%;
             height: 100%;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             will-change: transform;
         }
 
-        /* 三页：随手记(0) → 待办(1) → ddl(2) */
+        /* 四页：AT命令(0) → 随手记(1) → 待办(2) → ddl(3) */
         .app-wrapper.show-page-0 { transform: translateX(0); }
-        .app-wrapper.show-page-1 { transform: translateX(-33.3333%); }
-        .app-wrapper.show-page-2 { transform: translateX(-66.6667%); }
+        .app-wrapper.show-page-1 { transform: translateX(-25%); }
+        .app-wrapper.show-page-2 { transform: translateX(-50%); }
+        .app-wrapper.show-page-3 { transform: translateX(-75%); }
 
         .page {
-            width: 33.3333%;
+            width: 25%;
             height: 100vh;
             overflow-y: auto;
             overflow-x: hidden;
@@ -994,16 +995,40 @@
     <!-- ===== 页面指示器 ===== -->
     <div class="page-indicator" id="pageIndicator">
         <span class="page-dot"></span>
+        <span class="page-dot"></span>
         <span class="page-dot active"></span>
         <span class="page-dot"></span>
     </div>
 
-    <!-- ===== 三页面滑动容器：随手记(0) → 待办(1) → ddl(2) ===== -->
+    <!-- ===== 四页面滑动容器：AT命令(0) → 随手记(1) → 待办(2) → ddl(3) ===== -->
     <div class="app-viewport" id="appViewport">
         <div class="app-wrapper" id="appWrapper">
 
-            <!-- ======== 页面 0：随手记（标题+正文） ======== -->
+            <!-- ======== 页面 0：AT命令（标题+正文） ======== -->
             <div class="page" id="page0">
+                <div class="header">
+                    <h1><span class="glitch" data-text="AT命令">AT命令</span></h1>
+                    <div class="header-actions">
+                        <button class="header-btn" onclick="clearCompletedAtCmds()" title="清除已完成">○</button>
+                    </div>
+                </div>
+
+                <div class="search-card">
+                    <div class="search-wrap">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35"/>
+                        </svg>
+                        <input type="text" id="atCmdSearchInput" placeholder="搜索AT命令">
+                        <button class="search-clear" id="atCmdSearchClear" aria-label="清除">×</button>
+                    </div>
+                </div>
+
+                <div id="atCmdsContainer"></div>
+            </div>
+
+            <!-- ======== 页面 1：随手记（标题+正文） ======== -->
+            <div class="page" id="page1">
                 <div class="header">
                     <h1><span class="glitch" data-text="随手记">随手记</span></h1>
                     <div class="header-actions">
@@ -1025,8 +1050,8 @@
                 <div id="notesContainer"></div>
             </div>
 
-            <!-- ======== 页面 1：待办（标题+正文） ======== -->
-            <div class="page" id="page1">
+            <!-- ======== 页面 2：待办（标题+正文） ======== -->
+            <div class="page" id="page2">
                 <div class="header">
                     <h1><span class="glitch" data-text="待办">待办</span></h1>
                     <div class="header-actions">
@@ -1037,8 +1062,8 @@
                 <div id="todoContainer2"></div>
             </div>
 
-            <!-- ======== 页面 2：ddl（带日期时间地点） ======== -->
-            <div class="page" id="page2">
+            <!-- ======== 页面 3：ddl（带日期时间地点） ======== -->
+            <div class="page" id="page3">
                 <div class="header">
                     <h1><span class="glitch" data-text="ddl">ddl</span></h1>
                     <div class="header-actions">
@@ -1172,13 +1197,54 @@
         </div>
     </div>
 
+    <!-- ===== 弹窗 4：AT命令 新建/编辑（标题+正文，同随手记） ===== -->
+    <div class="modal-overlay" id="todoModal4">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle4">新建AT命令</h2>
+                <button class="close-btn" onclick="closeModal4()">×</button>
+            </div>
+            <form id="todoForm4" onsubmit="return false;">
+                <input type="hidden" id="todoId4">
+                <div class="form-group">
+                    <label class="form-label">标题 <span class="required">*</span></label>
+                    <div class="copy-row">
+                        <input type="text" class="form-input" id="todoTitle4" placeholder="请输入标题">
+                        <button type="button" class="copy-btn" data-copy="todoTitle4" aria-label="复制标题">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">正文</label>
+                    <div class="copy-row">
+                        <textarea class="form-input" id="todoContent4" placeholder="请输入详细内容"></textarea>
+                        <button type="button" class="copy-btn" data-copy="todoContent4" aria-label="复制正文">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal4()">取消</button>
+                    <button type="button" class="btn btn-confirm" onclick="saveAtCmd()">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- ===== 删除确认弹窗（共用） ===== -->
     <div class="modal-overlay confirm-modal" id="confirmModal">
         <div class="modal">
-            <p>确定要删除这个事项吗？</p>
+            <p id="confirmText">确定要删除这个事项吗？</p>
             <div class="modal-actions">
                 <button class="btn btn-cancel" onclick="closeConfirm()">取消</button>
-                <button class="btn btn-delete" onclick="confirmDelete()">删除</button>
+                <button class="btn btn-delete" id="confirmBtn" onclick="confirmDelete()">删除</button>
             </div>
         </div>
     </div>
@@ -1202,11 +1268,12 @@
             var todosCount = (JSON.parse(localStorage.getItem('todos') || '[]')).length;
             var todos2Count = (JSON.parse(localStorage.getItem('todos2') || '[]')).length;
             var notesCount = (JSON.parse(localStorage.getItem('notes') || '[]')).length;
+            var atCmdsCount = (JSON.parse(localStorage.getItem('atCmds') || '[]')).length;
             var lines = [
                 { t: '> 初始化任务核心', s: 'ok', d: 200 },
                 { t: '> 加载时间同步协议', s: 'ok', d: 280 },
                 { t: '> 校验本地数据完整性', s: 'ok', d: 250 },
-                { t: '> 随手记: ' + notesCount + ' / 待办: ' + todos2Count + ' / ddl: ' + todosCount, s: '', d: 300 },
+                { t: '> AT命令: ' + atCmdsCount + ' / 随手记: ' + notesCount + ' / 待办: ' + todos2Count + ' / ddl: ' + todosCount, s: '', d: 300 },
                 { t: '> 建立量子隧道连接...', s: '', d: 350 },
                 { t: '> 警告: 离线模式', s: 'warn', d: 200 },
                 { t: '> 系统就绪', s: 'ok', d: 200 }
@@ -1315,10 +1382,11 @@
         let deleteId = null;
 
         function init() {
+            renderAtCmds();
             renderNotes();
             renderTodos();
             renderTodos2();
-            showPage(1);
+            showPage(2);
             bindAutoGrow();
         }
 
@@ -1560,18 +1628,33 @@
             renderTodos();
         }
 
+        // 删除确认状态：0=首次确认, 1=再次确认
+        let confirmStep = 0;
+
         function openConfirm(id) {
             deleteId = id;
+            confirmStep = 0;
+            document.getElementById('confirmText').textContent = '确定要删除这个事项吗？';
+            document.getElementById('confirmBtn').textContent = '删除';
             document.getElementById('confirmModal').classList.add('active');
         }
 
         function closeConfirm() {
             deleteId = null;
             deleteId2 = null;
+            confirmStep = 0;
             document.getElementById('confirmModal').classList.remove('active');
         }
 
         function confirmDelete() {
+            // 第一次点击：仅提示再次确认，不真正删除
+            if (confirmStep === 0) {
+                confirmStep = 1;
+                document.getElementById('confirmText').textContent = '再次确认：删除后无法恢复，确定要删除吗？';
+                document.getElementById('confirmBtn').textContent = '确认删除';
+                return;
+            }
+            // 第二次点击：真正删除
             if (deleteId) {
                 todos = todos.filter(t => t.id !== deleteId);
                 saveTodos();
@@ -1878,6 +1961,142 @@
         }
 
         // ============================================================
+        // 页面 0：AT命令（标题+正文，布局同随手记）
+        // ============================================================
+        let atCmds = JSON.parse(localStorage.getItem('atCmds') || '[]');
+        let deleteAtCmdId = null;
+
+        function renderAtCmds(filter) {
+            filter = filter || '';
+            const container = document.getElementById('atCmdsContainer');
+            const keyword = filter.toLowerCase();
+            const filtered = atCmds.filter(c => {
+                return !keyword ||
+                    (c.title && c.title.toLowerCase().indexOf(keyword) >= 0) ||
+                    (c.content && c.content.toLowerCase().indexOf(keyword) >= 0);
+            }).sort((a, b) => {
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+            let html = '';
+
+            if (filtered.length > 0) {
+                html += '<div class="todo-list">';
+                filtered.forEach(cmd => { html += renderAtCmdItem(cmd); });
+                html += '</div>';
+            }
+
+            if (filtered.length === 0) {
+                html = '<div class="empty-state">' +
+                       '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+                       '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>' +
+                       '</svg>' +
+                       (filter ? '<div class="tip-title">NO RESULT</div><p>没有匹配的AT命令</p>' : '<div class="tip-title">NO AT CMD</div><p>暂无AT命令<br>点击 + 添加新AT命令</p>') +
+                       '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderAtCmdItem(cmd) {
+            const completedClass = cmd.completed ? 'completed' : '';
+
+            return `
+                <div class="todo-item ${completedClass}" onclick="openEditAtCmd('${cmd.id}')">
+                    <div class="checkbox ${cmd.completed ? 'checked' : ''}" onclick="event.stopPropagation(); toggleCompleteAtCmd('${cmd.id}')"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">${escapeHtml(cmd.title)}</div>
+                        ${cmd.content ? `<div class="todo-meta">${escapeHtml(cmd.content)}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleCompleteAtCmd(id) {
+            const cmd = atCmds.find(c => c.id === id);
+            if (cmd) {
+                cmd.completed = !cmd.completed;
+                cmd.completedAt = cmd.completed ? new Date().toISOString() : null;
+                saveAtCmds();
+                renderAtCmds(document.getElementById('atCmdSearchInput').value);
+            }
+        }
+
+        function openAddAtCmd() {
+            document.getElementById('modalTitle4').textContent = '新建AT命令';
+            document.getElementById('todoId4').value = '';
+            document.getElementById('todoForm4').reset();
+            document.getElementById('todoModal4').classList.add('active');
+            history.pushState(null, '', location.href);
+        }
+
+        function openEditAtCmd(id) {
+            const cmd = atCmds.find(c => c.id === id);
+            if (!cmd) return;
+
+            document.getElementById('modalTitle4').textContent = '编辑AT命令';
+            document.getElementById('todoId4').value = cmd.id;
+            document.getElementById('todoTitle4').value = cmd.title;
+            const contentEl4 = document.getElementById('todoContent4');
+            contentEl4.value = cmd.content || '';
+
+            document.getElementById('todoModal4').classList.add('active');
+            history.pushState(null, '', location.href);
+            requestAnimationFrame(function() { autoGrowTextarea(contentEl4); });
+        }
+
+        function closeModal4() {
+            document.getElementById('todoModal4').classList.remove('active');
+        }
+
+        function saveAtCmd() {
+            const id = document.getElementById('todoId4').value;
+            const title = document.getElementById('todoTitle4').value.trim();
+            const content = document.getElementById('todoContent4').value.trim();
+
+            if (!title) {
+                alert('请填写标题');
+                return;
+            }
+
+            if (id) {
+                const cmd = atCmds.find(c => c.id === id);
+                if (cmd) {
+                    cmd.title = title;
+                    cmd.content = content;
+                }
+            } else {
+                atCmds.push({
+                    id: Date.now().toString(),
+                    title,
+                    content,
+                    completed: false,
+                    completedAt: null,
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            saveAtCmds();
+            closeModal4();
+            renderAtCmds(document.getElementById('atCmdSearchInput').value);
+        }
+
+        function clearCompletedAtCmds() {
+            const completedCount = atCmds.filter(c => c.completed).length;
+            if (completedCount === 0) {
+                showToast('没有已勾选的AT命令');
+                return;
+            }
+            atCmds = atCmds.filter(c => !c.completed);
+            saveAtCmds();
+            renderAtCmds(document.getElementById('atCmdSearchInput').value);
+            showToast('已删除 ' + completedCount + ' 条');
+        }
+
+        function saveAtCmds() {
+            localStorage.setItem('atCmds', JSON.stringify(atCmds));
+        }
+
+        // ============================================================
         // 页面切换 & 滑动检测
         // ============================================================
         let currentPage = 0;
@@ -1887,7 +2106,7 @@
         function showPage(index) {
             currentPage = index;
             const wrapper = document.getElementById('appWrapper');
-            wrapper.classList.remove('show-page-0', 'show-page-1', 'show-page-2');
+            wrapper.classList.remove('show-page-0', 'show-page-1', 'show-page-2', 'show-page-3');
             wrapper.classList.add('show-page-' + index);
             updatePageIndicator();
         }
@@ -1901,8 +2120,10 @@
 
         function openAddForCurrentPage() {
             if (currentPage === 0) {
-                openAddNote();
+                openAddAtCmd();
             } else if (currentPage === 1) {
+                openAddNote();
+            } else if (currentPage === 2) {
                 openAddModal2();
             } else {
                 openAddModal();
@@ -1924,7 +2145,7 @@
             const absDy = Math.abs(dy);
 
             if (absDx > absDy && absDx > 40) {
-                if (dx < 0 && currentPage < 2) {
+                if (dx < 0 && currentPage < 3) {
                     showPage(currentPage + 1);
                 } else if (dx > 0 && currentPage > 0) {
                     showPage(currentPage - 1);
@@ -1937,7 +2158,7 @@
 
         // 手机返回键：关闭当前打开的编辑弹窗
         window.addEventListener('popstate', function() {
-            var modals = ['todoModal', 'todoModal2', 'todoModal3'];
+            var modals = ['todoModal', 'todoModal2', 'todoModal3', 'todoModal4'];
             var opened = modals.filter(function(id) {
                 return document.getElementById(id).classList.contains('active');
             });
@@ -1971,6 +2192,20 @@
             noteSearchInput.value = '';
             noteSearchClear.classList.remove('show');
             renderNotes('');
+        });
+
+        // ===== AT命令搜索 =====
+        var atCmdSearchInput = document.getElementById('atCmdSearchInput');
+        var atCmdSearchClear = document.getElementById('atCmdSearchClear');
+        atCmdSearchInput.addEventListener('input', function() {
+            var v = this.value;
+            atCmdSearchClear.classList.toggle('show', !!v);
+            renderAtCmds(v);
+        });
+        atCmdSearchClear.addEventListener('click', function() {
+            atCmdSearchInput.value = '';
+            atCmdSearchClear.classList.remove('show');
+            renderAtCmds('');
         });
 
         // ===== 复制功能 =====
