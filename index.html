@@ -1386,7 +1386,9 @@
             renderNotes();
             renderTodos();
             renderTodos2();
-            showPage(2);
+            var savedPage = parseInt(localStorage.getItem('todoCurrentPage'), 10);
+            if (isNaN(savedPage) || savedPage < 0 || savedPage > 3) savedPage = 2;
+            showPage(savedPage);
             bindAutoGrow();
         }
 
@@ -2109,6 +2111,7 @@
             wrapper.classList.remove('show-page-0', 'show-page-1', 'show-page-2', 'show-page-3');
             wrapper.classList.add('show-page-' + index);
             updatePageIndicator();
+            localStorage.setItem('todoCurrentPage', index);
         }
 
         function updatePageIndicator() {
