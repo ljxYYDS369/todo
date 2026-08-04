@@ -1009,7 +1009,7 @@
                 <div class="header">
                     <h1><span class="glitch" data-text="AT命令">AT命令</span></h1>
                     <div class="header-actions">
-                        <button class="header-btn" onclick="clearCompletedAtCmds()" title="清除已完成">○</button>
+                        <button class="header-btn" onclick="openConfirmClear('atCmds')" title="清除已完成">○</button>
                     </div>
                 </div>
 
@@ -1032,7 +1032,7 @@
                 <div class="header">
                     <h1><span class="glitch" data-text="随手记">随手记</span></h1>
                     <div class="header-actions">
-                        <button class="header-btn" onclick="clearCompletedNotes()" title="清除已完成">○</button>
+                        <button class="header-btn" onclick="openConfirmClear('notes')" title="清除已完成">○</button>
                     </div>
                 </div>
 
@@ -1632,10 +1632,12 @@
 
         // 删除确认状态：0=首次确认, 1=再次确认
         let confirmStep = 0;
+        let confirmCallback = null;
 
         function openConfirm(id) {
             deleteId = id;
             confirmStep = 0;
+            confirmCallback = null;
             document.getElementById('confirmText').textContent = '确定要删除这个事项吗？';
             document.getElementById('confirmBtn').textContent = '删除';
             document.getElementById('confirmModal').classList.add('active');
@@ -1644,6 +1646,7 @@
         function closeConfirm() {
             deleteId = null;
             deleteId2 = null;
+            confirmCallback = null;
             confirmStep = 0;
             document.getElementById('confirmModal').classList.remove('active');
         }
@@ -1657,6 +1660,12 @@
                 return;
             }
             // 第二次点击：真正删除
+            if (confirmCallback) {
+                const cb = confirmCallback;
+                closeConfirm();
+                cb();
+                return;
+            }
             if (deleteId) {
                 todos = todos.filter(t => t.id !== deleteId);
                 saveTodos();
@@ -1946,16 +1955,29 @@
             renderNotes(document.getElementById('noteSearchInput').value);
         }
 
-        function clearCompletedNotes() {
-            const completedCount = notes.filter(n => n.completed).length;
+        function openConfirmClear(type) {
+            const list = type === 'notes' ? notes : atCmds;
+            const completedCount = list.filter(x => x.completed).length;
             if (completedCount === 0) {
-                showToast('没有已勾选的随手记');
+                showToast(type === 'notes' ? '没有已勾选的随手记' : '没有已勾选的AT命令');
                 return;
             }
-            notes = notes.filter(n => !n.completed);
-            saveNotes();
-            renderNotes(document.getElementById('noteSearchInput').value);
-            showToast('已删除 ' + completedCount + ' 条');
+            confirmCallback = function() {
+                if (type === 'notes') {
+                    notes = notes.filter(n => !n.completed);
+                    saveNotes();
+                    renderNotes(document.getElementById('noteSearchInput').value);
+                } else {
+                    atCmds = atCmds.filter(c => !c.completed);
+                    saveAtCmds();
+                    renderAtCmds(document.getElementById('atCmdSearchInput').value);
+                }
+                showToast('已删除 ' + completedCount + ' 条');
+            };
+            confirmStep = 0;
+            document.getElementById('confirmText').textContent = '确定要清除全部已勾选的内容吗？';
+            document.getElementById('confirmBtn').textContent = '清除';
+            document.getElementById('confirmModal').classList.add('active');
         }
 
         function saveNotes() {
@@ -2080,18 +2102,6 @@
             saveAtCmds();
             closeModal4();
             renderAtCmds(document.getElementById('atCmdSearchInput').value);
-        }
-
-        function clearCompletedAtCmds() {
-            const completedCount = atCmds.filter(c => c.completed).length;
-            if (completedCount === 0) {
-                showToast('没有已勾选的AT命令');
-                return;
-            }
-            atCmds = atCmds.filter(c => !c.completed);
-            saveAtCmds();
-            renderAtCmds(document.getElementById('atCmdSearchInput').value);
-            showToast('已删除 ' + completedCount + ' 条');
         }
 
         function saveAtCmds() {
