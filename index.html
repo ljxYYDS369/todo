@@ -1630,13 +1630,11 @@
             renderTodos();
         }
 
-        // 删除确认状态：0=首次确认, 1=再次确认
-        let confirmStep = 0;
+        // 删除确认回调（自定义弹窗，单次确认）
         let confirmCallback = null;
 
         function openConfirm(id) {
             deleteId = id;
-            confirmStep = 0;
             confirmCallback = null;
             document.getElementById('confirmText').textContent = '确定要删除这个事项吗？';
             document.getElementById('confirmBtn').textContent = '删除';
@@ -1647,19 +1645,11 @@
             deleteId = null;
             deleteId2 = null;
             confirmCallback = null;
-            confirmStep = 0;
             document.getElementById('confirmModal').classList.remove('active');
         }
 
         function confirmDelete() {
-            // 第一次点击：仅提示再次确认，不真正删除
-            if (confirmStep === 0) {
-                confirmStep = 1;
-                document.getElementById('confirmText').textContent = '再次确认：删除后无法恢复，确定要删除吗？';
-                document.getElementById('confirmBtn').textContent = '确认删除';
-                return;
-            }
-            // 第二次点击：真正删除
+            // 单次确认：点击即删
             if (confirmCallback) {
                 const cb = confirmCallback;
                 closeConfirm();
@@ -1683,14 +1673,18 @@
         function clearCompleted() {
             const completedCount = todos.filter(t => t.completed).length;
             if (completedCount === 0) {
-                alert('没有已完成的事项');
+                showToast('没有已完成的事项');
                 return;
             }
-            if (confirm(`确定要清除 ${completedCount} 个已完成事项吗？`)) {
+            confirmCallback = function() {
                 todos = todos.filter(t => !t.completed);
                 saveTodos();
                 renderTodos();
-            }
+                showToast('已删除 ' + completedCount + ' 条');
+            };
+            document.getElementById('confirmText').textContent = '确定要清除 ' + completedCount + ' 个已完成事项吗？';
+            document.getElementById('confirmBtn').textContent = '清除';
+            document.getElementById('confirmModal').classList.add('active');
         }
 
         function saveTodos() {
@@ -1821,14 +1815,18 @@
         function clearCompleted2() {
             const completedCount = todos2.filter(t => t.completed).length;
             if (completedCount === 0) {
-                alert('没有已完成的待办');
+                showToast('没有已完成的待办');
                 return;
             }
-            if (confirm(`确定要清除 ${completedCount} 个已完成待办吗？`)) {
+            confirmCallback = function() {
                 todos2 = todos2.filter(t => !t.completed);
                 saveTodos2();
                 renderTodos2();
-            }
+                showToast('已删除 ' + completedCount + ' 条');
+            };
+            document.getElementById('confirmText').textContent = '确定要清除 ' + completedCount + ' 个已完成待办吗？';
+            document.getElementById('confirmBtn').textContent = '清除';
+            document.getElementById('confirmModal').classList.add('active');
         }
 
         function saveTodos2() {
@@ -1974,7 +1972,6 @@
                 }
                 showToast('已删除 ' + completedCount + ' 条');
             };
-            confirmStep = 0;
             document.getElementById('confirmText').textContent = '确定要清除全部已勾选的内容吗？';
             document.getElementById('confirmBtn').textContent = '清除';
             document.getElementById('confirmModal').classList.add('active');
