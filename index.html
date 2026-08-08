@@ -1518,6 +1518,7 @@
             document.getElementById('modalTitle').textContent = '新建ddl';
             document.getElementById('todoId').value = '';
             document.getElementById('todoForm').reset();
+            autoGrowTextarea(document.getElementById('todoContent'));
 
             const today = new Date();
             document.getElementById('todoYear').value = today.getFullYear();
@@ -1757,6 +1758,7 @@
             document.getElementById('modalTitle2').textContent = '新建待办';
             document.getElementById('todoId2').value = '';
             document.getElementById('todoForm2').reset();
+            autoGrowTextarea(document.getElementById('todoContent2'));
             document.getElementById('todoModal2').classList.add('active');
             history.pushState(null, '', location.href);
         }
@@ -1898,6 +1900,7 @@
             document.getElementById('modalTitle3').textContent = '新建随手记';
             document.getElementById('todoId3').value = '';
             document.getElementById('todoForm3').reset();
+            autoGrowTextarea(document.getElementById('todoContent3'));
             document.getElementById('todoModal3').classList.add('active');
             history.pushState(null, '', location.href);
         }
@@ -2046,6 +2049,7 @@
             document.getElementById('modalTitle4').textContent = '新建AT命令';
             document.getElementById('todoId4').value = '';
             document.getElementById('todoForm4').reset();
+            autoGrowTextarea(document.getElementById('todoContent4'));
             document.getElementById('todoModal4').classList.add('active');
             history.pushState(null, '', location.href);
         }
